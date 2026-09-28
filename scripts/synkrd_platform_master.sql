@@ -75,18 +75,23 @@ CREATE TABLE IF NOT EXISTS public.tenant_plans (
 -- Seed Plans
 INSERT INTO public.tenant_plans (name, display_name, max_conversations_mo, max_products, price_usd, features) VALUES
 (
-    'starter', 'Starter', 500, 50, 29.00,
-    '{"webchat": true, "whatsapp": true, "voice": false, "ai_conversational": true, "smart_catalog": true, "custom_persona": false, "spanish_localization": true, "in_chat_checkout": false, "smart_upsell": false, "abandoned_cart_recovery": false, "price_drop_alerts": false, "customer_memory": false, "visual_search": false, "reengagement": false, "analytics": true, "escalation": true, "shipping_notifications": false, "discount_codes": false, "api_access": false, "custom_domain": false, "dedicated_support": false}'::jsonb
+    'starter', 'Starter COD', 500, 50, 15.00,
+    '{"webchat": true, "whatsapp": true, "voice": false, "ai_conversational": true, "smart_catalog": true, "custom_persona": false, "spanish_localization": true, "in_chat_checkout": true, "smart_upsell": false, "abandoned_cart_recovery": false, "price_drop_alerts": false, "customer_memory": false, "visual_search": false, "reengagement": false, "analytics": true, "escalation": true, "shipping_notifications": false, "discount_codes": false, "api_access": false, "custom_domain": false, "dedicated_support": false}'::jsonb
 ),
 (
-    'pro', 'Pro', 2000, 200, 59.00,
-    '{"webchat": true, "whatsapp": true, "voice": true, "ai_conversational": true, "smart_catalog": true, "custom_persona": true, "spanish_localization": true, "in_chat_checkout": true, "smart_upsell": true, "abandoned_cart_recovery": false, "price_drop_alerts": false, "customer_memory": true, "visual_search": false, "reengagement": true, "analytics": true, "escalation": true, "shipping_notifications": true, "discount_codes": true, "api_access": false, "custom_domain": false, "dedicated_support": false}'::jsonb
+    'pro', 'Pro Scaling', 2500, 500, 45.00,
+    '{"webchat": true, "whatsapp": true, "voice": true, "ai_conversational": true, "smart_catalog": true, "custom_persona": true, "spanish_localization": true, "in_chat_checkout": true, "smart_upsell": true, "abandoned_cart_recovery": true, "price_drop_alerts": true, "customer_memory": true, "visual_search": false, "reengagement": true, "analytics": true, "escalation": true, "shipping_notifications": true, "discount_codes": true, "api_access": false, "custom_domain": true, "dedicated_support": false}'::jsonb
 ),
 (
-    'enterprise', 'Enterprise', 10000, 1000, 99.00,
+    'enterprise', 'Apex Enterprise', 6000, 2000, 65.00,
     '{"webchat": true, "whatsapp": true, "voice": true, "ai_conversational": true, "smart_catalog": true, "custom_persona": true, "spanish_localization": true, "in_chat_checkout": true, "smart_upsell": true, "abandoned_cart_recovery": true, "price_drop_alerts": true, "customer_memory": true, "visual_search": true, "reengagement": true, "analytics": true, "escalation": true, "shipping_notifications": true, "discount_codes": true, "api_access": true, "custom_domain": true, "dedicated_support": true}'::jsonb
 )
-ON CONFLICT (name) DO NOTHING;
+ON CONFLICT (name) DO UPDATE SET
+    display_name = EXCLUDED.display_name,
+    max_conversations_mo = EXCLUDED.max_conversations_mo,
+    max_products = EXCLUDED.max_products,
+    price_usd = EXCLUDED.price_usd,
+    features = EXCLUDED.features;
 
 -- 4. Tenants (Connected Stores)
 CREATE TABLE IF NOT EXISTS public.tenants (
