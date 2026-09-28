@@ -39,16 +39,34 @@ def get_platform_client():
 # SUPER ADMIN AUTH
 # ═══════════════════════════════════════════════════════════════
 
-async def verify_platform_admin(auth_user_id: str) -> Optional[dict]:
-    """Check if a Supabase Auth user is a registered platform admin."""
+async def verify_platform_admin(auth_user_id: str, email: str = None) -> Optional[dict]:
+    """Check if a Supabase Auth user is a registered platform admin (by ID or email)."""
     client = get_platform_client()
     if not client:
         return None
     try:
+        # First try by auth_user_id
         res = client.table("platform_admins").select("*").eq(
             "auth_user_id", auth_user_id
         ).eq("is_active", True).limit(1).execute()
-        return res.data[0] if res.data else None
+        if res.data:
+            return res.data[0]
+
+        # Fallback by email
+        if email:
+            res_email = client.table("platform_admins").select("*").eq(
+                "email", email.strip().lower()
+            ).eq("is_active", True).limit(1).execute()
+            if res_email.data:
+                admin = res_email.data[0]
+                try:
+                    client.table("platform_admins").update({
+                        "auth_user_id": auth_user_id
+                    }).eq("id", admin["id"]).execute()
+                except Exception:
+                    pass
+                return admin
+        return None
     except Exception as e:
         logger.error(f"❌ Admin verification failed: {e}")
         return None

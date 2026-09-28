@@ -2334,7 +2334,7 @@ async def get_platform_admin(credentials: HTTPAuthorizationCredentials = Depends
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    admin = await platform_db.verify_platform_admin(user_data["id"])
+    admin = await platform_db.verify_platform_admin(user_data["id"], email=user_data.get("email"))
     if not admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
