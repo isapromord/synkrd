@@ -78,6 +78,10 @@
                 class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
                 <i class="fas fa-scroll w-5 text-center"></i> Activity Logs
             </button>
+            <button onclick="showTab('fulfillment')" data-tab="fulfillment"
+                class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fas fa-boxes-packing w-5 text-center"></i> Fulfillment Hub
+            </button>
         </nav>
 
         <!-- User -->
@@ -249,6 +253,183 @@
                     </div>
                     <div id="logsList" class="space-y-2">
                         <div class="text-center text-sm text-gray-400 py-8">Loading logs...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══ FULFILLMENT TAB ═══ -->
+            <section id="tab-fulfillment" class="tab-content hidden">
+                <!-- Header Banner -->
+                <div class="glass-card rounded-2xl p-6 mb-6 border border-slate-200/80 shadow-sm bg-gradient-to-br from-white via-indigo-50/20 to-platform-50/40">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-platform-600 text-white flex items-center justify-center shadow-lg shadow-platform-500/30 flex-shrink-0 text-xl">
+                                <i class="fas fa-boxes-packing"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-xl font-bold text-gray-900">Hub de Integración con Firebase Studio Fulfillment</h2>
+                                    <span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                        <i class="fas fa-circle text-[6px] text-emerald-500 animate-pulse"></i> LIVE API v1.0
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1 max-w-2xl leading-relaxed">
+                                    Conexión bidireccional en tiempo real entre la plataforma de comercio y el almacén logístico creado en Firebase Studio. 
+                                    Sincroniza inventario físico por SKU y transmite órdenes confirmadas contra entrega (COD) al instante.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 self-start md:self-auto">
+                            <button onclick="testFulfillmentPing()" class="bg-white border border-gray-200 hover:border-platform-500 text-gray-700 hover:text-platform-600 px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+                                <i class="fas fa-satellite-dish text-platform-600"></i> Probar Conexión
+                            </button>
+                            <a href="https://www.trendyrd.com/admin" target="_blank" class="bg-platform-600 hover:bg-platform-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+                                <i class="fas fa-external-link-alt"></i> Abrir TrendyRD Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Credentials & Stores Hub -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Config Card -->
+                    <div class="glass-card rounded-xl p-5 border border-gray-100 lg:col-span-1 shadow-sm">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4">
+                            <i class="fas fa-key text-amber-500"></i> Credenciales de la Tienda
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Seleccionar Tienda / Tenant</label>
+                                <select id="ffTenantSelect" onchange="switchFulfillmentTenant()" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:border-platform-500 outline-none">
+                                    <option value="https://www.trendyrd.com">TrendyRD (Test & Master Tenant)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Base Endpoint URL</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="ffBaseUrl" value="https://www.trendyrd.com/api/fulfillment" readonly class="w-full px-3 py-1.5 text-xs font-mono bg-gray-50 rounded-lg border border-gray-200 text-gray-700">
+                                    <button onclick="copyElementText('ffBaseUrl')" class="p-1.5 text-gray-400 hover:text-platform-600 transition" title="Copiar"><i class="fas fa-copy text-xs"></i></button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Fulfillment API Key (Header `x-fulfillment-api-key`)</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="password" id="ffApiKey" value="ff_live_trendyrd_369_synk" class="w-full px-3 py-1.5 text-xs font-mono bg-gray-50 rounded-lg border border-gray-200 text-gray-700">
+                                    <button onclick="toggleKeyVisibility()" class="p-1.5 text-gray-400 hover:text-gray-600 transition"><i class="fas fa-eye text-xs" id="ffEyeIcon"></i></button>
+                                    <button onclick="copyElementText('ffApiKey')" class="p-1.5 text-gray-400 hover:text-platform-600 transition" title="Copiar"><i class="fas fa-copy text-xs"></i></button>
+                                </div>
+                                <p class="text-[10px] text-gray-400 mt-1">Usa este token en cada solicitud desde Firebase Studio o Cloud Functions.</p>
+                            </div>
+                            <div class="pt-2 border-t border-gray-100 flex flex-col gap-2">
+                                <button onclick="testFetchOrders()" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium py-2 rounded-lg transition flex items-center justify-center gap-2">
+                                    <i class="fas fa-truck-ramp-box"></i> Ver Órdenes Confirmadas (Live)
+                                </button>
+                                <button onclick="testFetchInventory()" class="w-full bg-slate-100 hover:bg-slate-200 text-gray-800 text-xs font-medium py-2 rounded-lg transition flex items-center justify-center gap-2">
+                                    <i class="fas fa-barcode"></i> Ver Inventario y SKUs (Live)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live JSON Console -->
+                    <div class="glass-card rounded-xl p-5 border border-gray-100 lg:col-span-2 shadow-sm flex flex-col">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                                <i class="fas fa-terminal text-platform-600"></i> Consola de Respuesta API en Vivo
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <span id="ffConsoleStatus" class="text-[11px] text-gray-400">Listo para probar</span>
+                                <button onclick="clearFulfillmentConsole()" class="text-xs text-gray-400 hover:text-gray-600">Limpiar</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 bg-slate-950 text-slate-200 rounded-lg p-3 font-mono text-xs overflow-auto max-h-[320px] border border-slate-800" id="ffConsoleOutput">
+// Presiona "Probar Conexión", "Ver Órdenes Confirmadas" o "Ver Inventario"
+// para inspeccionar las respuestas directas desde la tienda.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Endpoints Documentation -->
+                <div class="glass-card rounded-xl p-5 border border-gray-100 shadow-sm mb-6">
+                    <h3 class="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-book-bookmark text-platform-600"></i> Catálogo Completo de Endpoints RESTful
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Endpoint 1 -->
+                        <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-blue-600 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded">GET</span>
+                                <span class="text-xs font-mono font-bold text-gray-800">/api/fulfillment/orders</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-2">Consulta todas las órdenes confirmadas pendientes de despacho por el almacén.</p>
+                            <div class="text-[11px] bg-slate-900 text-emerald-400 font-mono p-2.5 rounded-lg overflow-x-auto">
+curl -X GET "https://www.trendyrd.com/api/fulfillment/orders?status=confirmado_whatsapp" \<br>
+&nbsp;&nbsp;-H "x-fulfillment-api-key: ff_live_trendyrd_369_synk"
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 2 -->
+                        <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-amber-600 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded">POST</span>
+                                <span class="text-xs font-mono font-bold text-gray-800">/api/fulfillment/orders/:id/status</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-2">El almacén actualiza guía de tracking o estado (<code>en_ruta</code>, <code>entregado</code>, <code>devuelto</code>).</p>
+                            <div class="text-[11px] bg-slate-900 text-emerald-400 font-mono p-2.5 rounded-lg overflow-x-auto">
+curl -X POST "https://www.trendyrd.com/api/fulfillment/orders/ORD-123/status" \<br>
+&nbsp;&nbsp;-H "x-fulfillment-api-key: ff_live_trendyrd_369_synk" \<br>
+&nbsp;&nbsp;-d '{"status":"en_ruta","tracking_number":"METRO-8849","courier_name":"MetroPac"}'
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 3 -->
+                        <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-blue-600 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded">GET</span>
+                                <span class="text-xs font-mono font-bold text-gray-800">/api/fulfillment/inventory</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-2">Obtiene catálogo completo de productos con variantes (talla, color, SKU y stock actual).</p>
+                            <div class="text-[11px] bg-slate-900 text-emerald-400 font-mono p-2.5 rounded-lg overflow-x-auto">
+curl -X GET "https://www.trendyrd.com/api/fulfillment/inventory" \<br>
+&nbsp;&nbsp;-H "x-fulfillment-api-key: ff_live_trendyrd_369_synk"
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 4 -->
+                        <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-purple-600 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded">POST</span>
+                                <span class="text-xs font-mono font-bold text-gray-800">/api/fulfillment/inventory/sync</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-2">El almacén Firebase ajusta existencias reales de variantes o productos en la tienda.</p>
+                            <div class="text-[11px] bg-slate-900 text-emerald-400 font-mono p-2.5 rounded-lg overflow-x-auto">
+curl -X POST "https://www.trendyrd.com/api/fulfillment/inventory/sync" \<br>
+&nbsp;&nbsp;-H "x-fulfillment-api-key: ff_live_trendyrd_369_synk" \<br>
+&nbsp;&nbsp;-d '{"updates":[{"sku":"POLO-M-BLK","stock":25},{"sku":"POLO-L-WHT","stock":12}]}'
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Integration Instructions with Firebase Studio -->
+                <div class="glass-card rounded-xl p-5 border border-gray-100 shadow-sm">
+                    <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-3">
+                        <i class="fas fa-fire text-amber-500"></i> ¿Cómo Conectar tu Proyecto de Firebase Studio?
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-gray-600 leading-relaxed">
+                        <div class="bg-white p-3 rounded-lg border border-gray-100 shadow-xs">
+                            <span class="font-bold text-platform-600 block mb-1">Paso 1: Cloud Function Webhook</span>
+                            Crea una función HTTP en Firebase Studio (ej. <code>onOrderDispatched</code>) y pega la URL en la configuración de la tienda. TrendyRD le despachará cada orden confirmada automáticamente.
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-gray-100 shadow-xs">
+                            <span class="font-bold text-platform-600 block mb-1">Paso 2: Sincronización de Stock</span>
+                            Configura un Cron Job o trigger de Firestore en Firebase Studio para que cada vez que cambie el inventario físico en el almacén, envíe un <code>POST /api/fulfillment/inventory/sync</code>.
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-gray-100 shadow-xs">
+                            <span class="font-bold text-platform-600 block mb-1">Paso 3: Notificación de Despacho</span>
+                            Cuando el chofer o courier recoja el paquete, Firebase llama a <code>POST /api/fulfillment/orders/:id/status</code> con el número de guía para que el cliente reciba su tracking.
+                        </div>
                     </div>
                 </div>
             </section>
@@ -525,6 +706,7 @@
         tenants: { title: 'Tenant Management', subtitle: 'Create, configure, and monitor tenants', load: loadTenants },
         plans: { title: 'Pricing Plans', subtitle: 'Manage subscription tiers', load: loadPlans },
         logs: { title: 'Activity Logs', subtitle: 'Platform audit trail', load: loadLogs },
+        fulfillment: { title: 'Fulfillment & Logistics Hub', subtitle: 'Firebase Studio integration, multi-tenant inventory & confirmed orders sync', load: loadFulfillment },
     };
 
     let currentTab = 'overview';
@@ -1166,6 +1348,133 @@
             'tenant_deleted': ' deleted tenant ',
         };
         return map[action] || ` ${action} `;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // FULFILLMENT TAB
+    // ═══════════════════════════════════════════════════════════
+    async function loadFulfillment() {
+        try {
+            // Populate tenants dropdown
+            if (!allTenants || !allTenants.length) {
+                const data = await api('/superadmin/api/tenants').catch(() => null);
+                if (data && data.tenants) allTenants = data.tenants;
+            }
+            const sel = document.getElementById('ffTenantSelect');
+            if (sel && allTenants && allTenants.length) {
+                const currentVal = sel.value;
+                sel.innerHTML = `
+                    <option value="https://www.trendyrd.com">TrendyRD (Test & Master Tenant)</option>
+                    ${allTenants.map(t => {
+                        const url = t.store_url || `https://${t.slug}.synkrd.com`;
+                        return `<option value="${esc(url)}">${esc(t.name)} (${esc(t.slug)})</option>`;
+                    }).join('')}
+                `;
+                if (currentVal) sel.value = currentVal;
+            }
+        } catch (e) {
+            console.error('loadFulfillment error:', e);
+        }
+    }
+
+    function switchFulfillmentTenant() {
+        const sel = document.getElementById('ffTenantSelect');
+        const baseUrl = sel.value.replace(/\/+$/, '') + '/api/fulfillment';
+        document.getElementById('ffBaseUrl').value = baseUrl;
+    }
+
+    function toggleKeyVisibility() {
+        const input = document.getElementById('ffApiKey');
+        const icon = document.getElementById('ffEyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    function copyElementText(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const val = el.value || el.innerText;
+        navigator.clipboard.writeText(val);
+        const originalStatus = document.getElementById('ffConsoleStatus').textContent;
+        document.getElementById('ffConsoleStatus').textContent = '✅ Copiado al portapapeles!';
+        setTimeout(() => {
+            document.getElementById('ffConsoleStatus').textContent = originalStatus;
+        }, 2000);
+    }
+
+    function clearFulfillmentConsole() {
+        document.getElementById('ffConsoleOutput').textContent = '// Consola limpia.';
+        document.getElementById('ffConsoleStatus').textContent = 'Listo';
+    }
+
+    async function testFulfillmentPing() {
+        const baseUrl = document.getElementById('ffBaseUrl').value;
+        const key = document.getElementById('ffApiKey').value;
+        const out = document.getElementById('ffConsoleOutput');
+        const st = document.getElementById('ffConsoleStatus');
+        st.textContent = 'Enviando Ping...';
+        out.textContent = `> GET ${baseUrl}/config (Ping)\n> Header: x-fulfillment-api-key: ${key.substring(0, 8)}...\n\nEsperando respuesta...`;
+
+        try {
+            const res = await fetch(`${baseUrl}/config?action=ping`, {
+                headers: { 'x-fulfillment-api-key': key }
+            });
+            const data = await res.json();
+            st.textContent = res.ok ? '🟢 Conexión exitosa (200 OK)' : `🔴 Error HTTP ${res.status}`;
+            out.textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+            st.textContent = '🔴 Error de red';
+            out.textContent = `Error de conexión: ${e.message}\nVerifica que la URL del endpoint sea accesible públicamente y tenga CORS habilitado.`;
+        }
+    }
+
+    async function testFetchOrders() {
+        const baseUrl = document.getElementById('ffBaseUrl').value;
+        const key = document.getElementById('ffApiKey').value;
+        const out = document.getElementById('ffConsoleOutput');
+        const st = document.getElementById('ffConsoleStatus');
+        st.textContent = 'Consultando órdenes confirmadas...';
+        out.textContent = `> GET ${baseUrl}/orders?status=confirmado_whatsapp\n\nEsperando órdenes...`;
+
+        try {
+            const res = await fetch(`${baseUrl}/orders?status=confirmado_whatsapp`, {
+                headers: { 'x-fulfillment-api-key': key }
+            });
+            const data = await res.json();
+            st.textContent = res.ok ? `🟢 ${data.total || 0} órdenes encontradas` : `🔴 Error HTTP ${res.status}`;
+            out.textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+            st.textContent = '🔴 Error de red';
+            out.textContent = `Error: ${e.message}`;
+        }
+    }
+
+    async function testFetchInventory() {
+        const baseUrl = document.getElementById('ffBaseUrl').value;
+        const key = document.getElementById('ffApiKey').value;
+        const out = document.getElementById('ffConsoleOutput');
+        const st = document.getElementById('ffConsoleStatus');
+        st.textContent = 'Consultando catálogo e inventario...';
+        out.textContent = `> GET ${baseUrl}/inventory\n\nEsperando catálogo...`;
+
+        try {
+            const res = await fetch(`${baseUrl}/inventory`, {
+                headers: { 'x-fulfillment-api-key': key }
+            });
+            const data = await res.json();
+            st.textContent = res.ok ? `🟢 ${data.total || 0} artículos con SKU` : `🔴 Error HTTP ${res.status}`;
+            out.textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+            st.textContent = '🔴 Error de red';
+            out.textContent = `Error: ${e.message}`;
+        }
     }
 
     // ═══════════════════════════════════════════════════════════
