@@ -40,6 +40,14 @@ def build_customer_context(profile: dict) -> str:
             addr_str += f", {city}"
         parts.append(f"- Dirección guardada: {addr_str}")
 
+    # Reliability and COD delivery score
+    reliability = profile.get("cod_reliability") or calculate_customer_reliability(profile)
+    rel_status = reliability.get("status", "NEW_CUSTOMER")
+    if rel_status == "VIP":
+        parts.append("- 🌟 Cliente VIP: Historial impecable, todas sus entregas COD recibidas y pagadas.")
+    elif rel_status == "HIGH_RISK":
+        parts.append("- ⚠️ ALERTA RIESGO COD: Ha devuelto o rechazado entregas anteriores. Recomienda confirmar con firmeza o pedir anticipo.")
+
     # Purchase history
     total_orders = profile.get("total_orders", 0)
     total_spent = profile.get("total_spent", 0)
@@ -225,3 +233,59 @@ def _simplify_product_name(product_name: str) -> str:
     # Fallback: first two words
     words = product_name.split()[:2]
     return " ".join(words).lower() if words else ""
+
+
+def calculate_customer_reliability(profile: dict, past_orders: list = None) -> dict:
+    """
+    Calculate customer COD (Contra Entrega) reliability score to mitigate returned package losses.
+    
+    Status tiers:
+    - VIP: 2+ orders delivered successfully, 0 returned.
+    - TRUSTED: 1 order delivered, 0 returned.
+    - NEW_CUSTOMER: 0 previous delivery history.
+    - MEDIUM_RISK: 1 returned order.
+    - HIGH_RISK: 2+ returned orders and higher returns than deliveries.
+    """
+    orders = past_orders or profile.get("past_orders") or []
+    delivered = 0
+    returned = 0
+    cancelled = 0
+
+    for o in orders:
+        st = str(o.get("status", "")).lower()
+        if st in ("entregado", "completed", "delivered", "pagado"):
+            delivered += 1
+        elif st in ("devuelto", "returned", "rejected", "failed_delivery", "rechazado"):
+            returned += 1
+        elif st in ("cancelado", "cancelled"):
+            cancelled += 1
+
+    if returned >= 2 and returned > delivered:
+        status = "HIGH_RISK"
+        safe_cod = False
+        alert = "⚠️ Alto riesgo de rechazo COD. Ha rechazado 2 o más entregas anteriores."
+    elif returned == 1:
+        status = "MEDIUM_RISK"
+        safe_cod = True
+        alert = "Tiene 1 entrega anterior no completada."
+    elif delivered >= 2 and returned == 0:
+        status = "VIP"
+        safe_cod = True
+        alert = "🌟 Cliente VIP recurrente."
+    elif delivered == 1 and returned == 0:
+        status = "TRUSTED"
+        safe_cod = True
+        alert = "Cliente con entrega previa exitosa."
+    else:
+        status = "NEW_CUSTOMER"
+        safe_cod = True
+        alert = "Primer pedido del cliente."
+
+    return {
+        "status": status,
+        "delivered_count": delivered,
+        "returned_count": returned,
+        "cancelled_count": cancelled,
+        "is_safe_cod": safe_cod,
+        "alert_note": alert,
+    }

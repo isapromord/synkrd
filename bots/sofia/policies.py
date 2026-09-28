@@ -19,11 +19,20 @@ STORE_POLICIES = {
     },
     "payment": {
         "methods": [
-            "Contra entrega (COD) — pago al recibir",
-            "Transferencia bancaria",
+            "Contra entrega (COD) — pago al recibir en efectivo",
+            "Transferencia bancaria / depósito",
         ],
-        "currency": "RD$ (Pesos Dominicanos)",
+        "currency": "RD$ (Pesos Dominicanos) / USD",
         "installments": False,
+        "bank_accounts": {
+            "beneficiary": "Howard Eduardo Luna Perez",
+            "cedula": "40226400022",
+            "accounts": [
+                {"bank": "Banco Popular", "currency": "DOP", "type": "Corriente", "account": "809372188"},
+                {"bank": "Banco BHD", "currency": "DOP", "type": "Ahorros", "account": "37472100011"},
+                {"bank": "Banco Promerica", "currency": "USD", "type": "Ahorros", "account": "21921000049373"},
+            ]
+        },
     },
     "customer_service": {
         "hours": "Lunes a Sábado, 9am - 7pm (hora RD)",
@@ -54,7 +63,7 @@ def get_policy_response(topic: str) -> str:
         )
     elif topic == "payment":
         methods = ", ".join(policy["methods"])
-        return f"💳 Métodos: {methods}. Precios en {policy['currency']}."
+        return f"💳 Métodos de pago: {methods}. ¡La mayoría prefiere pagar contra entrega (en efectivo al recibir)! Si prefieres transferencia, avísame y te paso las cuentas bancarias."
     elif topic == "customer_service":
         return (
             f"🕐 Horario: {policy['hours']}. "
@@ -62,3 +71,18 @@ def get_policy_response(topic: str) -> str:
         )
 
     return ""
+
+
+def get_bank_transfer_instructions() -> str:
+    """Format bank accounts clearly for WhatsApp transfer customers."""
+    p = STORE_POLICIES["payment"]["bank_accounts"]
+    lines = [
+        "💳 *Cuentas para Transferencia / Depósito:*",
+        f"👤 *Titular:* {p['beneficiary']}",
+        f"🆔 *Cédula:* {p['cedula']}",
+        "",
+    ]
+    for acc in p["accounts"]:
+        lines.append(f"🏦 *{acc['bank']}* ({acc['currency']})\n   Tipo: {acc['type']} | No: `{acc['account']}`")
+    lines.append("\n📸 Al realizar la transferencia, envíame la foto o captura del comprobante por aquí para procesar tu orden de inmediato. ✅")
+    return "\n".join(lines)

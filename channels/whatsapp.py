@@ -70,6 +70,7 @@ class WhatsAppChannel:
             audio_url = ""
             image_url = ""
 
+            location_data = {}
             if msg_type == "text":
                 text = msg.get("text", {}).get("body", "")
             elif msg_type == "image":
@@ -82,7 +83,21 @@ class WhatsAppChannel:
             elif msg_type == "document":
                 text = "[Documento recibido]"
             elif msg_type == "location":
-                text = "[Ubicación compartida]"
+                loc = msg.get("location", {}) or {}
+                lat = loc.get("latitude")
+                lon = loc.get("longitude")
+                loc_name = loc.get("name", "")
+                loc_address = loc.get("address", "")
+                maps_url = f"https://www.google.com/maps?q={lat},{lon}" if lat is not None and lon is not None else ""
+                loc_label = loc_name or loc_address or "Ubicación compartida"
+                text = f"📍 {loc_label}: {maps_url}" if maps_url else "[Ubicación compartida]"
+                location_data = {
+                    "latitude": lat,
+                    "longitude": lon,
+                    "name": loc_name,
+                    "address": loc_address,
+                    "maps_url": maps_url,
+                }
             elif msg_type == "button":
                 text = msg.get("button", {}).get("text", "")
             elif msg_type == "interactive":
@@ -109,6 +124,7 @@ class WhatsAppChannel:
                 "whatsapp_name": msg.get("customerProfile", {}).get("name", ""),
                 "audio_url": audio_url if msg_type == "audio" else "",
                 "image_url": image_url if msg_type == "image" else "",
+                "location": location_data,
                 "referral_source_id": referral.get("source_id", ""),
                 "referral_headline": referral.get("headline", ""),
                 "referral_source_url": referral.get("source_url", ""),

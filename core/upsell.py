@@ -170,9 +170,31 @@ def build_upsell_message(products: list) -> str:
         price_str = f"RD${price:,.0f}" if price else ""
         lines.append(f"  {i}. {name} — {price_str}")
 
-    lines.append("\n¿Te agrego alguno? 😊")
+    lines.append("\n¿Te agrego alguno al paquete con precio especial? 😊")
 
     return "\n".join(lines)
+
+
+def build_volume_discount_upsell(purchased_product_name: str, unit_price: float = 0.0) -> str:
+    """
+    When no complementary product exists, offer a 2nd unit of the same
+    product with a 15% discount on the total order to leverage the same courier.
+    """
+    discount_pct = 15
+    if unit_price > 0:
+        second_unit_price = round(unit_price * (1 - discount_pct / 100))
+        combo_total = unit_price + second_unit_price
+        return (
+            f"\n\n💡 *¡Oferta especial para aprovechar este mismo envío!* 🛵\n"
+            f"Si agregas una *2da unidad* de {purchased_product_name}, te la dejamos con un *{discount_pct}% de descuento*:\n"
+            f"• 2 unidades por solo *RD${combo_total:,.0f}* (en vez de RD${(unit_price * 2):,.0f}).\n"
+            f"¿Te agrego la segunda al paquete? 👀"
+        )
+    return (
+        f"\n\n💡 *¡Aprovecha el mismo envío!* 🛵\n"
+        f"Si agregas una *segunda unidad* de {purchased_product_name}, te aplicamos un *15% de descuento* en tu orden total.\n"
+        f"¿Te agrego la 2da unidad? 👀"
+    )
 
 
 def build_upsell_response(
@@ -180,10 +202,11 @@ def build_upsell_response(
     purchased_shopify_id: str,
     catalog: list,
     customer_history: list = None,
+    unit_price: float = 0.0,
 ) -> str:
     """
-    One-call convenience: find products + build message.
-    Returns the upsell text to append, or empty string.
+    One-call convenience: find complementary products or fallback to volume discount.
+    Returns the upsell text to append.
     """
     products = find_upsell_products(
         purchased_product_name=purchased_product_name,
@@ -191,4 +214,10 @@ def build_upsell_response(
         catalog=catalog,
         customer_history=customer_history,
     )
-    return build_upsell_message(products)
+    if products:
+        return build_upsell_message(products)
+    
+    if purchased_product_name:
+        return build_volume_discount_upsell(purchased_product_name, unit_price)
+
+    return ""

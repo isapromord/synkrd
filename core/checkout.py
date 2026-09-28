@@ -214,9 +214,14 @@ def extract_address_from_message(message: str) -> dict:
     msg_lower = message.lower().strip()
     address = {}
 
+    # Check for Google Maps URL in message
+    maps_match = re.search(r"https?://(?:maps\.google\.com|goo\.gl/maps|www\.google\.com/maps)[^\s]+", message)
+    if maps_match:
+        address["location_url"] = maps_match.group(0)
+
     # Extract full address as address1 (the raw text)
     # Remove common prefixes customers add
-    cleaned = re.sub(r"^(mi dirección es|dirección:|envíamelo a|enviamelo a|vivo en|es)\s*", "", msg_lower)
+    cleaned = re.sub(r"^(mi dirección es|dirección:|envíamelo a|enviamelo a|vivo en|es|📍\s*ubicación.*?:\s*)\s*", "", msg_lower)
     address["address1"] = cleaned.strip().title()
 
     # Try to detect city
@@ -245,7 +250,7 @@ def extract_address_from_message(message: str) -> dict:
 
 def is_address_sufficient(address: dict) -> bool:
     """Check if we have enough address info to create an order."""
-    return bool(address.get("address1") and len(address.get("address1", "")) > 5)
+    return bool(address.get("location_url") or (address.get("address1") and len(address.get("address1", "")) > 5))
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -296,7 +301,7 @@ def build_product_confirm_message(product_name: str, variant_title: str, price: 
         f"📦 {product_name}{variant_info}{qty_info}\n"
         f"💰 RD${total:,.0f} — Pagas al recibirlo\n\n"
         f"¿A qué dirección te lo envío? 📍\n"
-        f"(Calle, número, sector, ciudad)"
+        f"(Calle, número, sector, ciudad — o envíame tu ubicación actual con el clip 📎 de WhatsApp para que el mensajero llegue directo)"
     )
 
 
@@ -319,12 +324,16 @@ def build_order_summary_message(session: CheckoutSession) -> str:
     city = session.address.get("city", "")
     if city and city.lower() not in address_str.lower():
         address_str += f", {city}"
+    
+    loc_pin = ""
+    if session.address.get("location_url"):
+        loc_pin = f"\n🗺️ Pin GPS: {session.address['location_url']}"
 
     return (
         f"📋 *Tu pedido:*\n\n"
         f"📦 {session.product_name}{variant_info}{qty_info}\n"
         f"💰 RD${total:,.0f} — Pago contra entrega\n"
-        f"📍 {address_str}\n\n"
+        f"📍 {address_str}{loc_pin}\n\n"
         f"¿Confirmas el pedido? ✅"
     )
 

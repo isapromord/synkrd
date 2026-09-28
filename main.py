@@ -802,7 +802,8 @@ async def _handle_checkout_flow(
                         f"📦 {session.product_name} ({session.variant_title})\n"
                         f"💰 RD${total:,.0f} — COD\n"
                         f"📱 {session.customer_phone}\n"
-                        f"📍 {session.address.get('address1', '')}"
+                        f"📍 {session.address.get('address1', '')}" +
+                        (f"\n🗺️ GPS: {session.address['location_url']}" if session.address.get('location_url') else "")
                     )
 
                 # Build confirmation + smart upsell (feature-gated)
@@ -824,6 +825,7 @@ async def _handle_checkout_flow(
                         purchased_shopify_id=purchased_id,
                         catalog=_products_raw,
                         customer_history=customer_history,
+                        unit_price=session.price,
                     )
                 return confirmation_msg + upsell_text
             else:
@@ -1355,8 +1357,60 @@ async def whatsapp_webhook(request: Request):
         customer_profile = None
         customer_context = ""
 
-    # ── Visual Product Search: customer sent an image (feature-gated) ──
+    # ── Image Handling: Bank Transfer Receipt Validator OR Visual Product Search ──
     if parsed.get("message_type") == "image" and parsed.get("image_url"):
+        # 1. First check if it's a bank transfer receipt
+        from core.receipt_validator import validate_payment_receipt
+        receipt_result = await validate_payment_receipt(
+            image_url=parsed["image_url"],
+            ycloud_api_key=settings.channels.ycloud_api_key,
+        )
+
+        if receipt_result.get("is_receipt") and receipt_result.get("is_authentic"):
+            bank = receipt_result.get("bank", "tu banco")
+            amount = receipt_result.get("amount", 0)
+            auth_code = receipt_result.get("auth_code", "")
+            matches_target = receipt_result.get("beneficiary_matches_target", False)
+
+            if matches_target:
+                response_text = (
+                    f"¡Comprobante recibido y validado con éxito! 🎉💳\n\n"
+                    f"🏦 *Banco:* {bank}\n"
+                    f"💰 *Monto:* RD${amount:,.0f}\n"
+                    f"🔢 *No. Autorización:* {auth_code}\n\n"
+                    f"Tu pago fue recibido a nombre de Howard Eduardo Luna Perez. "
+                    f"Estamos procesando tu orden para despacho inmediato. ¡Muchas gracias! 🙌"
+                )
+                logger.info(f"✅ Verified bank receipt from {sender}: {bank} RD${amount} Auth:{auth_code}")
+                if _notifier:
+                    try:
+                        await _notifier.send(
+                            f"💰 *PAGO POR TRANSFERENCIA VERIFICADO*\n"
+                            f"📱 Cliente: {sender}\n"
+                            f"🏦 Banco: {bank} | RD${amount:,.0f}\n"
+                            f"🔢 Auth: {auth_code}\n"
+                            f"✅ Beneficiario: Howard Eduardo Luna Perez"
+                        )
+                    except Exception as e:
+                        logger.warning(f"Could not send owner receipt alert: {e}")
+            else:
+                response_text = (
+                    f"Recibí el comprobante de {bank} por RD${amount:,.0f} (No. {auth_code}), "
+                    f"pero el titular o cuenta destino no coincide exactamente con las cuentas oficiales de la tienda. "
+                    f"Nuestro equipo humano lo verificará enseguida para confirmar tu orden. 🔍"
+                )
+
+            conversation.add_message("user", "[Comprobante de transferencia]")
+            conversation.add_message("assistant", response_text)
+            conv_result = await db.save_conversation(conversation.to_dict())
+            if conv_result and conv_result.get("id"):
+                conv_uuid = conv_result["id"]
+                await db.save_message({"conversation_id": conv_uuid, "role": "customer", "content": "[Comprobante de pago]", "intent": "payment_receipt"})
+                await db.save_message({"conversation_id": conv_uuid, "role": "assistant", "content": response_text, "intent": "payment_receipt", "ai_model": "gemini-vision", "ai_tier": 1})
+            await _whatsapp.send_text(sender, response_text)
+            return {"status": "ok", "action": "receipt_validated"}
+
+        # 2. If not a bank receipt, proceed to visual product search
         if feature_enabled("visual_search"):
             image_caption = message_text if message_text != "[Imagen recibida]" else ""
             description = await analyze_image(
