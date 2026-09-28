@@ -208,6 +208,9 @@ def build_upsell_response(
     One-call convenience: find complementary products or fallback to volume discount.
     Returns the upsell text to append.
     """
+    if not catalog:
+        return ""
+
     products = find_upsell_products(
         purchased_product_name=purchased_product_name,
         purchased_shopify_id=purchased_shopify_id,
