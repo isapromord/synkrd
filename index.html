@@ -176,18 +176,18 @@
         }
 
         :root {
-            --brand: #8B5CF6;
-            --brand-light: #A78BFA;
-            --brand-glow: rgba(139, 92, 246, 0.4);
-            --accent: #EC4899;
-            --accent-glow: rgba(236, 72, 153, 0.4);
-            --bg-dark: #0B0714;
-            --bg-section: #0F0A1E;
-            --bg-card: rgba(255, 255, 255, 0.04);
-            --text: #E8E4F0;
-            --text-dim: rgba(232, 228, 240, 0.55);
-            --border: rgba(139, 92, 246, 0.15);
-            --border-hover: rgba(139, 92, 246, 0.35);
+            --brand: #6366F1;
+            --brand-light: #818CF8;
+            --brand-glow: rgba(99, 102, 241, 0.3);
+            --accent: #10B981;
+            --accent-glow: rgba(16, 185, 129, 0.3);
+            --bg-dark: #050508;
+            --bg-section: #0A0B10;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --text: #F8FAFC;
+            --text-dim: #94A3B8;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.18);
             --success: #10B981;
         }
 
@@ -216,7 +216,7 @@
             align-items: center;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            background: rgba(11, 7, 20, 0.75);
+            background: rgba(5, 5, 8, 0.85);
             border-bottom: 1px solid var(--border);
             transition: all 0.3s ease;
         }
@@ -333,11 +333,11 @@
             inset: 0;
             background: linear-gradient(
                 180deg,
-                rgba(11, 7, 20, 0.2) 0%,
-                rgba(11, 7, 20, 0.05) 30%,
-                rgba(11, 7, 20, 0.35) 60%,
-                rgba(11, 7, 20, 0.75) 80%,
-                rgba(11, 7, 20, 0.95) 100%
+                rgba(5, 5, 8, 0.25) 0%,
+                rgba(5, 5, 8, 0.1) 30%,
+                rgba(5, 5, 8, 0.45) 60%,
+                rgba(5, 5, 8, 0.8) 80%,
+                rgba(5, 5, 8, 0.98) 100%
             );
             z-index: 1;
             pointer-events: none;
@@ -812,24 +812,41 @@
         /* ═══ PRICING ═══ */
         .pricing {
             padding: 100px 24px;
-            max-width: 1000px;
+            max-width: 1360px;
             margin: 0 auto;
         }
 
         .pricing-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        @media (max-width: 1180px) {
+            .pricing-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
         }
 
         .pricing-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 24px;
-            padding: 36px;
+            padding: 32px 20px;
             text-align: center;
             transition: all 0.3s;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .pricing-card.popular {
@@ -973,7 +990,22 @@
             color: var(--text-dim);
             font-size: 0.95rem;
             line-height: 1.65;
+            display: none;
+        }
+
+        .faq-item.active .faq-answer {
             display: block;
+            animation: fadeInFaq 0.25s ease-out;
+        }
+
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+            color: #10B981;
+        }
+
+        @keyframes fadeInFaq {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* ═══ CTA ═══ */
@@ -1019,39 +1051,127 @@
 
         /* ═══ FOOTER ═══ */
         footer {
-            padding: 48px 24px 36px;
-            text-align: center;
+            padding: 64px 24px 32px;
             border-top: 1px solid var(--border);
-            background: #08050e;
+            background: #040406;
+            color: var(--text-dim);
         }
 
-        .footer-links {
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 48px;
+            text-align: left;
+        }
+
+        .footer-brand h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 12px;
             display: flex;
-            justify-content: center;
-            gap: 24px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
         }
 
-        .footer-links a {
+        .footer-brand p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            max-width: 320px;
+        }
+
+        .footer-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #10B981;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .footer-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10B981;
+            box-shadow: 0 0 8px #10B981;
+        }
+
+        .footer-col h4 {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-col a {
+            font-size: 14px;
             color: var(--text-dim);
             text-decoration: none;
-            font-size: 14px;
-            transition: color 0.2s;
+            transition: color 0.2s ease, transform 0.2s ease;
+            display: inline-block;
         }
 
-        .footer-links a:hover {
-            color: var(--brand-light);
+        .footer-col a:hover {
+            color: #fff;
+            transform: translateX(2px);
         }
 
-        footer p {
-            color: var(--text-dim);
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
             font-size: 13px;
         }
 
-        footer a {
-            color: var(--brand-light);
-            text-decoration: none;
+        .footer-bottom p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        @media (max-width: 900px) {
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 32px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
         }
 
         /* ═══ ANIMATIONS ═══ */
@@ -1232,7 +1352,6 @@
             <a href="#themes">Temas</a>
             <a href="#pricing">Precios</a>
             <a href="#faq">FAQ</a>
-            <a href="static/admin.html" class="nav-dashboard-link" style="color:#34D399; font-weight:700;"><i class="fas fa-chart-line"></i> Panel Tienda</a>
             <a href="static/login.html" class="nav-login"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a>
             <a href="static/setup.html" class="nav-cta"><i class="fas fa-rocket"></i> Crear Tienda</a>
         </div>
@@ -1686,7 +1805,7 @@
 
             <div class="faq-list">
                 <div class="faq-item animate-on-scroll">
-                    <div class="faq-question" onclick="this.parentElement.querySelector('.faq-answer').style.display = this.parentElement.querySelector('.faq-answer').style.display === 'none' ? 'block' : 'none'">
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
                         <span>¿Cómo reduce SynkRD las devoluciones en Pago Contra Entrega (COD)?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
@@ -1696,7 +1815,7 @@
                 </div>
 
                 <div class="faq-item animate-on-scroll">
-                    <div class="faq-question" onclick="this.parentElement.querySelector('.faq-answer').style.display = this.parentElement.querySelector('.faq-answer').style.display === 'none' ? 'block' : 'none'">
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
                         <span>¿Sofía AI puede procesar y enviar notas de voz?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
@@ -1706,7 +1825,7 @@
                 </div>
 
                 <div class="faq-item animate-on-scroll">
-                    <div class="faq-question" onclick="this.parentElement.querySelector('.faq-answer').style.display = this.parentElement.querySelector('.faq-answer').style.display === 'none' ? 'block' : 'none'">
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
                         <span>¿Es compatible con mi tienda Shopify actual?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
@@ -1716,7 +1835,7 @@
                 </div>
 
                 <div class="faq-item animate-on-scroll">
-                    <div class="faq-question" onclick="this.parentElement.querySelector('.faq-answer').style.display = this.parentElement.querySelector('.faq-answer').style.display === 'none' ? 'block' : 'none'">
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
                         <span>¿Qué sucede si un cliente necesita atención humana?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
@@ -1726,7 +1845,7 @@
                 </div>
 
                 <div class="faq-item animate-on-scroll">
-                    <div class="faq-question" onclick="this.parentElement.querySelector('.faq-answer').style.display = this.parentElement.querySelector('.faq-answer').style.display === 'none' ? 'block' : 'none'">
+                    <div class="faq-question" onclick="this.parentElement.classList.toggle('active')">
                         <span>¿Puedo usar mi propio número de WhatsApp para mi tienda?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
@@ -1750,33 +1869,64 @@
 
     <!-- ═══ FOOTER ═══ -->
     <footer>
-        <!-- Direct Dashboards Access Bar -->
-        <div style="margin: 0 auto 24px; padding: 14px 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; display: inline-flex; gap: 16px 24px; flex-wrap: wrap; justify-content: center; align-items: center; max-width: 900px;">
-            <span style="font-size: 12px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                <i class="fas fa-th-large" style="color: var(--brand-light);"></i> Acceso a Plataforma:
-            </span>
-            <a href="static/admin.html" style="font-size: 14px; font-weight: 700; color: #34D399; text-decoration: none;"><i class="fas fa-chart-line"></i> Panel de Tienda</a>
-            <a href="static/login.html" style="font-size: 14px; font-weight: 600; color: var(--brand-light); text-decoration: none;"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a>
-            <a href="static/setup.html" style="font-size: 14px; font-weight: 700; color: #F59E0B; text-decoration: none;"><i class="fas fa-rocket"></i> Setup Nueva Tienda</a>
-            <a href="static/crm.html" style="font-size: 14px; font-weight: 600; color: #60A5FA; text-decoration: none;"><i class="fas fa-comments"></i> CRM WhatsApp</a>
-            <a href="static/superadmin.html" style="font-size: 14px; font-weight: 600; color: #EC4899; text-decoration: none;"><i class="fas fa-user-shield"></i> Super Admin</a>
-        </div>
+        <div class="footer-container">
+            <div class="footer-grid">
+                <!-- Column 1: Brand & Status -->
+                <div class="footer-brand">
+                    <h3>
+                        <span style="background: linear-gradient(135deg, #7C3AED, #38BDF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SynkRD</span>
+                    </h3>
+                    <p>La plataforma integral de IA conversacional y optimización de ventas Contra Entrega (COD) para marcas líderes en República Dominicana y Latinoamérica.</p>
+                    <div class="footer-status">
+                        <span class="footer-status-dot"></span>
+                        <span>Sistemas Operativos 100%</span>
+                    </div>
+                </div>
 
-        <div class="footer-links">
-            <a href="#features">Funciones</a>
-            <a href="#cod">Anti-Devoluciones COD</a>
-            <a href="#roi-calc">Calculadora ROI</a>
-            <a href="#themes">Temas</a>
-            <a href="#pricing">Precios</a>
-            <a href="#faq">FAQ</a>
-            <a href="static/privacy.html">Política de Privacidad</a>
-            <a href="static/terms.html">Términos y Condiciones</a>
-            <a href="https://wa.me/18294554783" target="_blank">Contacto Oficial</a>
+                <!-- Column 2: Producto & Soluciones -->
+                <div class="footer-col">
+                    <h4>Producto</h4>
+                    <ul>
+                        <li><a href="#features">Sofía AI Engine</a></li>
+                        <li><a href="#cod">Anti-Devoluciones COD</a></li>
+                        <li><a href="#themes">Temas de Alta Conversión</a></li>
+                        <li><a href="#roi-calc">Calculadora de ROI</a></li>
+                        <li><a href="#pricing">Planes y Precios</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Plataforma & Acceso -->
+                <div class="footer-col">
+                    <h4>Plataforma</h4>
+                    <ul>
+                        <li><a href="static/login.html"><i class="fas fa-sign-in-alt" style="margin-right: 6px; color: var(--brand-light);"></i> Iniciar Sesión</a></li>
+                        <li><a href="static/setup.html"><i class="fas fa-rocket" style="margin-right: 6px; color: #34D399;"></i> Crear Mi Tienda</a></li>
+                        <li><a href="#faq">Preguntas Frecuentes</a></li>
+                        <li><a href="https://wa.me/18294554783" target="_blank"><i class="fab fa-whatsapp" style="margin-right: 6px; color: #25D366;"></i> Soporte WhatsApp</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 4: Legal & Confianza -->
+                <div class="footer-col">
+                    <h4>Legal & Confianza</h4>
+                    <ul>
+                        <li><a href="static/privacy.html">Política de Privacidad</a></li>
+                        <li><a href="static/terms.html">Términos y Condiciones</a></li>
+                        <li><a href="#cod">Protección Ley No. 172-13</a></li>
+                        <li><a href="https://wa.me/18294554783?text=Hola%2C%20requiero%20informaci%C3%B3n%20empresarial%20de%20SynkRD" target="_blank">Contacto Corporativo</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 SynkRD · Sofía AI Engine v2 · Santo Domingo, República Dominicana · Cumplimiento Ley 172-13</p>
+                <p style="display: flex; align-items: center; gap: 12px;">
+                    <a href="https://synkrd.github.io/" style="color: rgba(255,255,255,0.6);">synkrd.github.io</a>
+                    <span>·</span>
+                    <a href="https://wa.me/18294554783" target="_blank" style="color: #25D366;"><i class="fab fa-whatsapp"></i> +1 (829) 455-4783</a>
+                </p>
+            </div>
         </div>
-        <p style="margin-bottom: 8px; font-size: 12px; color: rgba(232, 228, 240, 0.4);">
-            SynkRD es una plataforma SaaS de comercio electrónico y asistencia con Inteligencia Artificial. Cumplimiento con la Ley No. 172-13 de Protección de Datos Personales (República Dominicana).
-        </p>
-        <p>&copy; 2026 <a href="https://synkrd.github.io/" target="_blank">SynkRD</a> · Sofía AI Engine v2 · Santo Domingo, República Dominicana · Hecho con 💜</p>
     </footer>
 
     <!-- ═══ CHAT WIDGET (Live Demo) ═══ -->
