@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Redireccionando... — SynkRD</title>
+  <script>
+    // GitHub Pages SPA router fallback
+    (function() {
+      var path = window.location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+      if (path === 'admin') {
+        window.location.replace('/admin/');
+      } else if (path === 'login') {
+        window.location.replace('/login/');
+      } else if (path === 'crm') {
+        window.location.replace('/crm/');
+      } else if (path === 'superadmin') {
+        window.location.replace('/superadmin/');
+      } else {
+        window.location.replace('/login/');
+      }
+    })();
+  </script>
+</head>
+<body style="background:#0f1117; color:#fff; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0;">
+  <p>Redireccionando a SynkRD...</p>
+</body>
+</html>

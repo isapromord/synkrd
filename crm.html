@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>Sofía CRM — SynkDR</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #242836;
+      --border: #2e3345;
+      --text: #e4e6ed;
+      --text2: #8b90a0;
+      --accent: #7c5cfc;
+      --accent2: #9b7cff;
+      --green: #34d399;
+      --green-bg: rgba(52,211,153,.12);
+      --red: #f87171;
+      --red-bg: rgba(248,113,113,.12);
+      --yellow: #fbbf24;
+      --yellow-bg: rgba(251,191,36,.12);
+      --blue: #60a5fa;
+      --blue-bg: rgba(96,165,250,.12);
+      --radius: 12px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── Topbar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 56px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-logo { font-size: 20px; font-weight: 700; }
+    .topbar-logo span { color: var(--accent2); }
+    .topbar-badge { font-size: 11px; background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 20px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .btn-logout {
+      background: none; border: 1px solid var(--border); color: var(--text2);
+      padding: 6px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: .2s;
+    }
+    .btn-logout:hover { border-color: var(--accent); color: var(--text); }
+    .btn-print {
+      background: none; border: 1px solid var(--border); color: var(--text2);
+      padding: 6px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: .2s;
+    }
+    .btn-print:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Single unified tab bar ── */
+    .tab-bar {
+      display: flex; gap: 0; padding: 0 24px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 12px 18px; background: none; border: none; color: var(--text2);
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      border-bottom: 2px solid transparent; transition: .15s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+      white-space: nowrap;
+    }
+    .tab-btn:hover:not(.active):not(.divider) { color: var(--text); }
+    .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); }
+    .tab-btn .badge {
+      background: var(--accent); color: #fff; font-size: 11px;
+      padding: 1px 6px; border-radius: 10px; font-weight: 700;
+    }
+    .tab-divider {
+      width: 1px; background: var(--border); margin: 10px 4px; align-self: stretch;
+    }
+
+    /* ── Main content ── */
+    .main { padding: 24px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Toolbar ── */
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .search-box {
+      padding: 8px 12px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 13px; width: 240px; outline: none;
+    }
+    .search-box:focus { border-color: var(--accent); }
+    .count-badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 12px; color: var(--text2); }
+    .btn {
+      padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: none; color: var(--text2); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: .15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: var(--surface); color: var(--text2); font-weight: 600;
+      padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border);
+      white-space: nowrap; cursor: pointer; user-select: none;
+    }
+    th:hover { color: var(--text); }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(124,92,252,.04); }
+    .mono { font-family: 'Consolas', monospace; font-size: 12px; color: var(--text2); }
+
+    /* ── Badges ── */
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .pill-green { background: var(--green-bg); color: var(--green); }
+    .pill-yellow { background: var(--yellow-bg); color: var(--yellow); }
+    .pill-red { background: var(--red-bg); color: var(--red); }
+    .pill-purple { background: rgba(124,92,252,.15); color: var(--accent2); }
+    .pill-gray { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+
+    /* ── States ── */
+    .loading, .empty { text-align: center; padding: 60px; color: var(--text2); font-size: 15px; }
+
+    /* ── Print ── */
+    @media print {
+      .topbar, .tab-bar, .toolbar .btn, .btn-print { display: none !important; }
+      body { background: #fff; color: #000; }
+      td, th { color: #000 !important; border-color: #ccc !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">Sofía <span>Admin</span></div>
+    <span class="topbar-badge">CRM</span>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-print" onclick="window.print()">🖨 Imprimir</button>
+    <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+  </div>
+</header>
+
+<!-- ── UNIFIED TAB BAR ── -->
+<nav class="tab-bar">
+  <a class="tab-btn" href="/admin">📊 Dashboard</a>
+  <a class="tab-btn" href="/admin">💬 Chats</a>
+  <a class="tab-btn" href="/admin">⚙️ Ajustes</a>
+  <div class="tab-divider"></div>
+  <button class="tab-btn active" data-crm="customers" onclick="switchCRM('customers', this)">👥 Clientes <span class="badge" id="badge-customers">…</span></button>
+  <button class="tab-btn" data-crm="abandoned" onclick="switchCRM('abandoned', this)">🛒 Carritos <span class="badge" id="badge-abandoned">…</span></button>
+  <button class="tab-btn" data-crm="wishlist" onclick="switchCRM('wishlist', this)">⭐ Wishlist <span class="badge" id="badge-wishlist">…</span></button>
+</nav>
+
+<!-- ── CONTENT ── -->
+<div class="main">
+
+  <!-- CLIENTES -->
+  <div id="panel-customers" class="tab-panel active">
+    <div class="toolbar">
+      <input class="search-box" placeholder="Buscar cliente, nombre, teléfono…" oninput="filterTable('tbl-customers', this.value)" />
+      <span class="count-badge" id="lbl-customers">cargando…</span>
+      <button class="btn" onclick="exportCSV('/admin/api/customers/export.csv','clientes.csv')">⬇ CSV</button>
+      <button class="btn" onclick="loadCustomers()">↺ Actualizar</button>
+    </div>
+    <div class="table-wrap">
+      <table id="tbl-customers">
+        <thead><tr>
+          <th onclick="sortTable('tbl-customers',0)">ID Cliente</th>
+          <th onclick="sortTable('tbl-customers',1)">Nombre</th>
+          <th onclick="sortTable('tbl-customers',2)">Teléfono</th>
+          <th onclick="sortTable('tbl-customers',3)">Canal</th>
+          <th onclick="sortTable('tbl-customers',4)">Primera visita</th>
+          <th onclick="sortTable('tbl-customers',5)">Última visita</th>
+          <th onclick="sortTable('tbl-customers',6)">Msgs</th>
+          <th onclick="sortTable('tbl-customers',7)">Último interés</th>
+          <th onclick="sortTable('tbl-customers',8)">¿Ordenó?</th>
+        </tr></thead>
+        <tbody id="tbody-customers"><tr><td colspan="9" class="loading">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CARRITOS ABANDONADOS -->
+  <div id="panel-abandoned" class="tab-panel">
+    <div class="toolbar">
+      <input class="search-box" placeholder="Buscar…" oninput="filterTable('tbl-abandoned', this.value)" />
+      <span class="count-badge" id="lbl-abandoned">cargando…</span>
+      <button class="btn" onclick="loadAbandoned()">↺ Actualizar</button>
+    </div>
+    <div class="table-wrap">
+      <table id="tbl-abandoned">
+        <thead><tr>
+          <th>ID / Teléfono</th>
+          <th>Nombre</th>
+          <th>Canal</th>
+          <th>Último producto de interés</th>
+          <th>Última visita</th>
+          <th>Mensajes</th>
+        </tr></thead>
+        <tbody id="tbody-abandoned"><tr><td colspan="6" class="loading">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- WISHLIST -->
+  <div id="panel-wishlist" class="tab-panel">
+    <div class="toolbar">
+      <input class="search-box" placeholder="Buscar producto, cliente…" oninput="filterTable('tbl-wishlist', this.value)" />
+      <span class="count-badge" id="lbl-wishlist">cargando…</span>
+      <button class="btn" onclick="exportCSV('/admin/api/wishlist/export.csv','wishlist.csv')">⬇ CSV</button>
+      <button class="btn" onclick="loadWishlist()">↺ Actualizar</button>
+    </div>
+    <div class="table-wrap">
+      <table id="tbl-wishlist">
+        <thead><tr>
+          <th>Cliente ID</th>
+          <th>Producto</th>
+          <th>Variante solicitada</th>
+          <th>Canal</th>
+          <th>Fecha</th>
+          <th>Notificado</th>
+        </tr></thead>
+        <tbody id="tbody-wishlist"><tr><td colspan="6" class="loading">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ── Auth (same Supabase session as admin.html) ─────────────────
+const SUPABASE_URL = 'https://votyvfjbrjmcghekaatk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvdHl2ZmpicmptY2doZWthYXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTA3NDksImV4cCI6MjA4Nzk2Njc0OX0.-vo_fUfBzty-mPXn61tv-v8azBcXeL3nF0JBEgYopK0';
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let _token = null;
+
+async function init() {
+  const { data: { session } } = await sbClient.auth.getSession();
+  if (!session) { window.location.replace('/login'); return; }
+  _token = session.access_token;
+  sbClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'TOKEN_REFRESHED' && session) _token = session.access_token;
+    if (event === 'SIGNED_OUT') window.location.replace('/login');
+  });
+  loadCustomers();
+}
+
+async function logout() {
+  await sbClient.auth.signOut();
+  window.location.replace('/login');
+}
+
+async function apiFetch(url) {
+  const res = await fetch(url, {
+    headers: { 'Authorization': `Bearer ${_token}` },
+  });
+  if (res.status === 401) {
+    alert('Sesión expirada. Redirigiendo al login…');
+    window.location.replace('/login');
+    throw new Error('Unauthorized');
+  }
+  return res.json();
+}
+
+// ── Tab switching ──────────────────────────────────────────────
+const _loaded = {};
+
+function switchCRM(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn[data-crm]').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (!_loaded[name]) {
+    _loaded[name] = true;
+    if (name === 'abandoned') loadAbandoned();
+    if (name === 'wishlist') loadWishlist();
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('es-DO', {
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
+function channelPill(ch) {
+  const map = { whatsapp: 'pill-green', webchat: 'pill-purple', voice: 'pill-yellow' };
+  return `<span class="pill ${map[ch] || 'pill-gray'}">${ch || '?'}</span>`;
+}
+
+function yesNo(val) {
+  return val
+    ? '<span class="pill pill-green">Sí</span>'
+    : '<span class="pill pill-gray">No</span>';
+}
+
+// ── Customers ─────────────────────────────────────────────────
+async function loadCustomers() {
+  const data = await apiFetch('/admin/api/customers?limit=500');
+  const list = data.customers || [];
+  document.getElementById('badge-customers').textContent = list.length;
+  document.getElementById('lbl-customers').textContent = `${list.length} clientes`;
+  const tbody = document.getElementById('tbody-customers');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">Sin clientes registrados aún. Los datos se acumularán conforme Sofía reciba conversaciones.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(c => `<tr>
+    <td class="mono">${c.customer_id || '—'}</td>
+    <td>${c.name || '<span style="color:var(--text2)">—</span>'}</td>
+    <td class="mono">${c.phone || '—'}</td>
+    <td>${channelPill(c.channel)}</td>
+    <td>${fmtDate(c.first_seen)}</td>
+    <td>${fmtDate(c.last_seen)}</td>
+    <td style="text-align:center">${c.total_messages || 0}</td>
+    <td>${c.last_interested_product || '—'}</td>
+    <td style="text-align:center">${yesNo(c.has_order)}</td>
+  </tr>`).join('');
+}
+
+// ── Abandoned carts ───────────────────────────────────────────
+async function loadAbandoned() {
+  const data = await apiFetch('/admin/api/abandoned-carts');
+  const list = data.abandoned_carts || [];
+  document.getElementById('badge-abandoned').textContent = list.length;
+  document.getElementById('lbl-abandoned').textContent = `${list.length} abandonados`;
+  const tbody = document.getElementById('tbody-abandoned');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">¡Sin carritos abandonados! 🎉</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(c => `<tr>
+    <td class="mono">${c.customer_id || '—'}</td>
+    <td>${c.name || '—'}</td>
+    <td>${channelPill(c.channel)}</td>
+    <td>${c.last_interested_product || '—'}</td>
+    <td>${fmtDate(c.last_seen)}</td>
+    <td style="text-align:center">${c.total_messages || 0}</td>
+  </tr>`).join('');
+}
+
+// ── Wishlist ──────────────────────────────────────────────────
+async function loadWishlist() {
+  const data = await apiFetch('/admin/api/wishlist');
+  const list = data.wishlist || [];
+  document.getElementById('badge-wishlist').textContent = list.length;
+  document.getElementById('lbl-wishlist').textContent = `${list.length} items`;
+  const tbody = document.getElementById('tbody-wishlist');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Wishlist vacía.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(i => `<tr>
+    <td class="mono">${i.customer_id || '—'}</td>
+    <td>${i.product_name || '—'}</td>
+    <td>${(i.variant_title || '—').substring(0, 80)}</td>
+    <td>${channelPill(i.channel)}</td>
+    <td>${fmtDate(i.created_at)}</td>
+    <td style="text-align:center">${yesNo(i.notified)}</td>
+  </tr>`).join('');
+}
+
+// ── Search filter ─────────────────────────────────────────────
+function filterTable(tblId, q) {
+  q = q.toLowerCase();
+  document.querySelectorAll(`#${tblId} tbody tr`).forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// ── Sort ──────────────────────────────────────────────────────
+const _sortDir = {};
+function sortTable(tblId, col) {
+  const tbody = document.querySelector(`#${tblId} tbody`);
+  const rows = [...tbody.querySelectorAll('tr')];
+  const dir = (_sortDir[tblId + col] = !_sortDir[tblId + col]);
+  rows.sort((a, b) => {
+    const va = a.cells[col]?.textContent.trim() || '';
+    const vb = b.cells[col]?.textContent.trim() || '';
+    return dir ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// ── CSV export ────────────────────────────────────────────────
+async function exportCSV(url, filename) {
+  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${_token}` } });
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+// ── Boot ──────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

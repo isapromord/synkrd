@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sofía Platform — Super Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        platform: {
+                            50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+                            400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+                            800: '#3730a3', 900: '#312e81'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar { transition: width 0.3s ease; }
+        .glass-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border: 1px solid rgba(0,0,0,0.06); }
+        .bg-app { background: #f1f5f9; }
+        .status-active { color: #059669; background: #d1fae5; }
+        .status-setup { color: #d97706; background: #fef3c7; }
+        .status-suspended { color: #dc2626; background: #fee2e2; }
+        .status-trial { color: #6366f1; background: #e0e7ff; }
+        .status-deleted { color: #6b7280; background: #f3f4f6; }
+        .modal-overlay { background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        .fade-in { animation: fadeIn 0.3s ease; }
+        .slide-up { animation: slideUp 0.3s ease; }
+        .kpi-card { transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="bg-app min-h-screen">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white z-40 sidebar flex flex-col">
+        <!-- Logo -->
+        <div class="p-5 border-b border-slate-700/50">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-platform-500 to-platform-700 flex items-center justify-center shadow-lg shadow-platform-500/20">
+                    <i class="fas fa-shield-alt text-sm text-white"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-sm">Sofía Platform</div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Super Admin</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="flex-1 p-3 space-y-1">
+            <button onclick="showTab('overview')" data-tab="overview"
+                class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fas fa-chart-pie w-5 text-center"></i> Overview
+            </button>
+            <button onclick="showTab('tenants')" data-tab="tenants"
+                class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fas fa-building w-5 text-center"></i> Tenants
+            </button>
+            <button onclick="showTab('plans')" data-tab="plans"
+                class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fas fa-tags w-5 text-center"></i> Plans
+            </button>
+            <button onclick="showTab('logs')" data-tab="logs"
+                class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fas fa-scroll w-5 text-center"></i> Activity Logs
+            </button>
+        </nav>
+
+        <!-- User -->
+        <div class="p-4 border-t border-slate-700/50">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-platform-600 flex items-center justify-center text-xs font-bold" id="userAvatar">SA</div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-xs font-medium truncate" id="userName">Super Admin</div>
+                    <div class="text-[10px] text-slate-400 truncate" id="userEmail">admin</div>
+                </div>
+                <button onclick="logout()" class="text-slate-400 hover:text-red-400 transition" title="Cerrar sesión">
+                    <i class="fas fa-sign-out-alt text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-64 min-h-screen">
+        <!-- Top bar -->
+        <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-sm border-b border-gray-100 px-6 py-3 flex items-center justify-between">
+            <div>
+                <h1 class="text-lg font-bold text-gray-900" id="pageTitle">Platform Overview</h1>
+                <p class="text-xs text-gray-500" id="pageSubtitle">All tenants, real-time stats</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="refreshCurrentTab()" class="text-sm text-gray-500 hover:text-platform-600 transition flex items-center gap-1.5">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </header>
+
+        <!-- Tab Content -->
+        <div class="p-6">
+            <!-- ═══ OVERVIEW TAB ═══ -->
+            <section id="tab-overview" class="tab-content">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="kpi-card glass-card rounded-xl p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Tenants</span>
+                            <div class="w-8 h-8 rounded-lg bg-platform-50 flex items-center justify-center">
+                                <i class="fas fa-building text-platform-600 text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900" id="kpi-tenants">—</div>
+                        <div class="text-xs text-gray-400 mt-1"><span id="kpi-active" class="text-green-600 font-medium">0</span> active, <span id="kpi-setup" class="text-amber-600 font-medium">0</span> setup</div>
+                    </div>
+                    <div class="kpi-card glass-card rounded-xl p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Conversations</span>
+                            <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                                <i class="fas fa-comments text-green-600 text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900" id="kpi-conversations">—</div>
+                        <div class="text-xs text-gray-400 mt-1">Across all tenants</div>
+                    </div>
+                    <div class="kpi-card glass-card rounded-xl p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Messages</span>
+                            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                                <i class="fas fa-envelope text-blue-600 text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900" id="kpi-messages">—</div>
+                        <div class="text-xs text-gray-400 mt-1">All channels combined</div>
+                    </div>
+                    <div class="kpi-card glass-card rounded-xl p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Online Now</span>
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                                <i class="fas fa-signal text-emerald-600 text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900" id="kpi-online">—</div>
+                        <div class="text-xs text-gray-400 mt-1">Bots reachable</div>
+                    </div>
+                </div>
+
+                <!-- Plans Overview -->
+                <div class="glass-card rounded-xl p-5 mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-tags text-platform-500"></i> Plans Distribution
+                    </h3>
+                    <div id="plansOverview" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="text-center text-sm text-gray-400 py-4">Loading plans...</div>
+                    </div>
+                </div>
+
+                <!-- Quick Tenant List -->
+                <div class="glass-card rounded-xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-building text-platform-500"></i> Recent Tenants
+                        </h3>
+                        <button onclick="showTab('tenants')" class="text-xs text-platform-600 hover:underline">View all →</button>
+                    </div>
+                    <div id="recentTenants">
+                        <div class="text-center text-sm text-gray-400 py-8">Loading...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══ TENANTS TAB ═══ -->
+            <section id="tab-tenants" class="tab-content hidden">
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <input id="tenantSearch" type="text" placeholder="Search tenants..."
+                            class="px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 focus:ring-2 focus:ring-platform-500/20 outline-none w-64"
+                            oninput="filterTenants()">
+                        <select id="tenantFilter" onchange="filterTenants()"
+                            class="px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                            <option value="">All statuses</option>
+                            <option value="active">Active</option>
+                            <option value="setup">Setup</option>
+                            <option value="trial">Trial</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                    <button onclick="openCreateModal()"
+                        class="bg-platform-600 hover:bg-platform-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                        <i class="fas fa-plus"></i> New Tenant
+                    </button>
+                </div>
+
+                <!-- Tenant Table -->
+                <div class="glass-card rounded-xl overflow-hidden">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wider">
+                                <th class="text-left px-5 py-3">Tenant</th>
+                                <th class="text-left px-5 py-3">Plan</th>
+                                <th class="text-left px-5 py-3">Status</th>
+                                <th class="text-left px-5 py-3">Billing</th>
+                                <th class="text-center px-5 py-3">Conversations</th>
+                                <th class="text-right px-5 py-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tenantsTable">
+                            <tr><td colspan="6" class="text-center text-sm text-gray-400 py-8">Loading tenants...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ═══ PLANS TAB ═══ -->
+            <section id="tab-plans" class="tab-content hidden">
+                <div class="flex items-center justify-between mb-5">
+                    <div></div>
+                    <button onclick="openPlanModal()" class="bg-platform-600 hover:bg-platform-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                        <i class="fas fa-plus"></i> New Plan
+                    </button>
+                </div>
+                <div id="plansGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center text-sm text-gray-400 py-8">Loading plans...</div>
+                </div>
+            </section>
+
+            <!-- ═══ LOGS TAB ═══ -->
+            <section id="tab-logs" class="tab-content hidden">
+                <div class="glass-card rounded-xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-scroll text-platform-500"></i> Platform Activity
+                        </h3>
+                        <span class="text-xs text-gray-400" id="logsCount">—</span>
+                    </div>
+                    <div id="logsList" class="space-y-2">
+                        <div class="text-center text-sm text-gray-400 py-8">Loading logs...</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ═══ CREATE TENANT MODAL ═══ -->
+    <div id="createModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 slide-up">
+            <div class="flex items-center justify-between p-5 border-b border-gray-100">
+                <h3 class="font-bold text-gray-900">Create New Tenant</h3>
+                <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="createTenantForm" class="p-5 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Business Name *</label>
+                        <input type="text" id="ct_name" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="SynkDR">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Slug *</label>
+                        <input type="text" id="ct_slug" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="SynkDR">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Owner Email *</label>
+                        <input type="email" id="ct_email" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="owner@business.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Owner Name</label>
+                        <input type="text" id="ct_owner" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="John Doe">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Bot Name</label>
+                        <input type="text" id="ct_bot" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Sofía" value="Sofía">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Plan</label>
+                        <select id="ct_plan" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                            <option value="">Select plan...</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Store URL</label>
+                    <input type="url" id="ct_store" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="https://store.com">
+                </div>
+                <div class="border-t border-gray-100 pt-4">
+                    <p class="text-xs text-gray-400 mb-3"><i class="fas fa-database mr-1"></i> Supabase (optional — can configure later)</p>
+                    <div class="grid grid-cols-1 gap-3">
+                        <input type="url" id="ct_supa_url" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Supabase Project URL">
+                        <input type="text" id="ct_supa_key" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Supabase Anon Key">
+                    </div>
+                </div>
+
+                <div id="createError" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3"></div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeCreateModal()" class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                    <button type="submit" id="createBtn" class="bg-platform-600 hover:bg-platform-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Create Tenant
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ TENANT DETAIL MODAL ═══ -->
+    <div id="detailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] overflow-y-auto slide-up">
+            <div class="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10">
+                <h3 class="font-bold text-gray-900" id="detailTitle">Tenant Details</h3>
+                <button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="detailContent" class="p-5">
+                <div class="text-center text-sm text-gray-400 py-8">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ PLAN EDIT/CREATE MODAL ═══ -->
+    <div id="planModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 slide-up">
+            <div class="flex items-center justify-between p-5 border-b border-gray-100">
+                <h3 class="font-bold text-gray-900" id="planModalTitle">New Plan</h3>
+                <button onclick="closePlanModal()" class="text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="planForm" class="p-5 space-y-4">
+                <input type="hidden" id="pf_id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Internal Name *</label>
+                        <input type="text" id="pf_name" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="starter">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Display Name *</label>
+                        <input type="text" id="pf_display" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Starter">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Price (USD/mo) *</label>
+                        <input type="number" step="0.01" id="pf_price" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="49">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Conversations/mo *</label>
+                        <input type="number" id="pf_convs" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Max Products</label>
+                        <input type="number" id="pf_products" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="100" value="100">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Features</label>
+                    <div class="max-h-64 overflow-y-auto border border-gray-100 rounded-lg p-3 space-y-3" id="featureCheckboxes">
+                        <!-- Populated by initFeatureCheckboxes() after constants load -->
+                    </div>
+                </div>
+                <div id="planError" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3"></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closePlanModal()" class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                    <button type="submit" id="planBtn" class="bg-platform-600 hover:bg-platform-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fas fa-save"></i> <span id="planBtnText">Save Plan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ TENANT EDIT MODAL ═══ -->
+    <div id="editTenantModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto slide-up">
+            <div class="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10">
+                <h3 class="font-bold text-gray-900" id="editTenantTitle">Edit Tenant</h3>
+                <button onclick="closeEditTenantModal()" class="text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="editTenantForm" class="p-5 space-y-4">
+                <input type="hidden" id="et_id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Name</label>
+                        <input type="text" id="et_name" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Bot Name</label>
+                        <input type="text" id="et_bot" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                        <select id="et_status" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                            <option value="active">Active</option>
+                            <option value="setup">Setup</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Plan</label>
+                        <select id="et_plan" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                            <option value="">No plan</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Store URL</label>
+                    <input type="url" id="et_store" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                </div>
+                <div class="border-t border-gray-100 pt-4">
+                    <p class="text-xs text-gray-400 mb-3"><i class="fas fa-robot mr-1"></i> AI Configuration</p>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Provider</label>
+                            <select id="et_ai_provider" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                                <option value="gemini">Gemini</option>
+                                <option value="anthropic">Anthropic</option>
+                                <option value="openai">OpenAI</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Temperature</label>
+                            <input type="number" step="0.1" min="0" max="2" id="et_ai_temp" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Max Tokens</label>
+                            <input type="number" id="et_ai_tokens" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-gray-100 pt-4">
+                    <p class="text-xs text-gray-400 mb-3"><i class="fas fa-database mr-1"></i> Supabase</p>
+                    <div class="space-y-3">
+                        <input type="url" id="et_supa_url" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Supabase URL">
+                        <input type="text" id="et_supa_key" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Supabase Anon Key">
+                    </div>
+                </div>
+                <div id="editTenantError" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3"></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditTenantModal()" class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                    <button type="submit" id="editTenantBtn" class="bg-platform-600 hover:bg-platform-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════
+    // AUTH & API
+    // ═══════════════════════════════════════════════════════════
+    const SUPABASE_URL = 'https://votyvfjbrjmcghekaatk.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvdHl2ZmpicmptY2doZWthYXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTA3NDksImV4cCI6MjA4Nzk2Njc0OX0.-vo_fUfBzty-mPXn61tv-v8azBcXeL3nF0JBEgYopK0';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let token = null;
+    let allTenants = [];
+    let allPlans = [];
+
+    async function getToken() {
+        if (token) return token;
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { window.location.href = '/superadmin/login'; return null; }
+        token = session.access_token;
+        return token;
+    }
+
+    async function api(path, method = 'GET', body = null) {
+        const t = await getToken();
+        if (!t) return null;
+        const opts = { method, headers: { 'Authorization': `Bearer ${t}`, 'Content-Type': 'application/json' } };
+        if (body) opts.body = JSON.stringify(body);
+        const r = await fetch(path, opts);
+        if (r.status === 401 || r.status === 403) {
+            // Try refresh
+            const { data: { session } } = await sb.auth.refreshSession();
+            if (!session) { window.location.href = '/superadmin/login'; return null; }
+            token = session.access_token;
+            opts.headers['Authorization'] = `Bearer ${token}`;
+            const r2 = await fetch(path, opts);
+            if (!r2.ok) throw new Error(`API ${r2.status}`);
+            return r2.json();
+        }
+        if (!r.ok) {
+            const err = await r.json().catch(() => ({}));
+            throw new Error(err.detail || `API error ${r.status}`);
+        }
+        return r.json();
+    }
+
+    async function logout() {
+        await sb.auth.signOut();
+        window.location.href = '/superadmin/login';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // NAVIGATION
+    // ═══════════════════════════════════════════════════════════
+    const tabConfig = {
+        overview: { title: 'Platform Overview', subtitle: 'All tenants, real-time stats', load: loadOverview },
+        tenants: { title: 'Tenant Management', subtitle: 'Create, configure, and monitor tenants', load: loadTenants },
+        plans: { title: 'Pricing Plans', subtitle: 'Manage subscription tiers', load: loadPlans },
+        logs: { title: 'Activity Logs', subtitle: 'Platform audit trail', load: loadLogs },
+    };
+
+    let currentTab = 'overview';
+
+    function showTab(name) {
+        currentTab = name;
+        // Hide all, show selected
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`tab-${name}`).classList.remove('hidden');
+        // Nav active state
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('bg-slate-800', btn.dataset.tab === name);
+            btn.classList.toggle('text-white', btn.dataset.tab === name);
+        });
+        // Header
+        const cfg = tabConfig[name];
+        document.getElementById('pageTitle').textContent = cfg.title;
+        document.getElementById('pageSubtitle').textContent = cfg.subtitle;
+        cfg.load();
+    }
+
+    function refreshCurrentTab() { tabConfig[currentTab].load(); }
+
+    // ═══════════════════════════════════════════════════════════
+    // OVERVIEW TAB
+    // ═══════════════════════════════════════════════════════════
+    async function loadOverview() {
+        try {
+            const data = await api('/superadmin/api/overview');
+            if (!data) return;
+            const o = data.overview;
+            allPlans = data.plans || [];
+
+            document.getElementById('kpi-tenants').textContent = o.total_tenants;
+            document.getElementById('kpi-active').textContent = o.active_tenants;
+            document.getElementById('kpi-setup').textContent = o.setup_tenants;
+            document.getElementById('kpi-conversations').textContent = o.total_conversations.toLocaleString();
+            document.getElementById('kpi-messages').textContent = o.total_messages.toLocaleString();
+            document.getElementById('kpi-online').textContent = `${o.online_tenants}/${o.active_tenants}`;
+
+            // Plans
+            if (allPlans.length) {
+                document.getElementById('plansOverview').innerHTML = allPlans.map(p => `
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <div class="text-sm font-semibold text-gray-900">${p.display_name}</div>
+                        <div class="text-2xl font-bold text-platform-600 mt-1">$${p.price_usd}</div>
+                        <div class="text-xs text-gray-400 mt-1">${p.max_conversations_mo.toLocaleString()} conv/mo</div>
+                    </div>
+                `).join('');
+            }
+
+            // Recent tenants
+            const tData = await api('/superadmin/api/tenants');
+            if (tData && tData.tenants.length) {
+                allTenants = tData.tenants;
+                document.getElementById('recentTenants').innerHTML = tData.tenants.slice(0, 5).map(t => `
+                    <div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-platform-100 flex items-center justify-center text-platform-700 text-xs font-bold">
+                                ${(t.name || '?').substring(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">${esc(t.name)}</div>
+                                <div class="text-xs text-gray-400">${esc(t.slug)} · ${esc(t.owner_email || '')}</div>
+                            </div>
+                        </div>
+                        <span class="status-${t.status} text-xs font-medium px-2 py-0.5 rounded-full">${t.status}</span>
+                    </div>
+                `).join('');
+            } else {
+                document.getElementById('recentTenants').innerHTML = '<div class="text-center text-sm text-gray-400 py-6">No tenants yet. <button onclick="showTab(\'tenants\'); openCreateModal()" class="text-platform-600 hover:underline">Create one</button></div>';
+            }
+        } catch (e) {
+            console.error('Overview load error:', e);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TENANTS TAB
+    // ═══════════════════════════════════════════════════════════
+    async function loadTenants() {
+        try {
+            const data = await api('/superadmin/api/tenants');
+            if (!data) return;
+            allTenants = data.tenants;
+            renderTenantsTable(allTenants);
+
+            // Populate plan select in create modal
+            if (!allPlans.length) {
+                const p = await api('/superadmin/api/plans');
+                if (p) allPlans = p.plans;
+            }
+            const sel = document.getElementById('ct_plan');
+            sel.innerHTML = '<option value="">Select plan...</option>' +
+                allPlans.map(p => `<option value="${p.id}">${p.display_name} ($${p.price_usd}/mo)</option>`).join('');
+        } catch (e) {
+            console.error('Tenants load error:', e);
+        }
+    }
+
+    function renderTenantsTable(tenants) {
+        const tbody = document.getElementById('tenantsTable');
+        if (!tenants.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-sm text-gray-400 py-8">No tenants found</td></tr>';
+            return;
+        }
+        tbody.innerHTML = tenants.map(t => {
+            const plan = t.plan ? t.plan.display_name : '—';
+            const price = t.plan ? `$${t.plan.price_usd}` : '—';
+            return `
+            <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition cursor-pointer" onclick="openTenantDetail('${t.id}')">
+                <td class="px-5 py-3.5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-lg bg-platform-100 flex items-center justify-center text-platform-700 text-xs font-bold">
+                            ${(t.name || '?').substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">${esc(t.name)}</div>
+                            <div class="text-xs text-gray-400">${esc(t.slug)}${t.store_url ? ' · ' + esc(t.store_url) : ''}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-5 py-3.5 text-sm text-gray-600">${plan}</td>
+                <td class="px-5 py-3.5">
+                    <span class="status-${t.status} text-xs font-medium px-2.5 py-1 rounded-full">${t.status}</span>
+                </td>
+                <td class="px-5 py-3.5">
+                    <span class="status-${t.billing_status || 'trial'} text-xs font-medium px-2.5 py-1 rounded-full">${t.billing_status || 'trial'}</span>
+                </td>
+                <td class="px-5 py-3.5 text-center text-sm text-gray-600">—</td>
+                <td class="px-5 py-3.5 text-right">
+                    <button onclick="event.stopPropagation(); openTenantDetail('${t.id}')" class="text-gray-400 hover:text-platform-600 transition" title="View details">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function filterTenants() {
+        const q = document.getElementById('tenantSearch').value.toLowerCase();
+        const statusFilter = document.getElementById('tenantFilter').value;
+        let filtered = allTenants;
+        if (q) filtered = filtered.filter(t => t.name.toLowerCase().includes(q) || (t.slug || '').toLowerCase().includes(q) || (t.owner_email || '').toLowerCase().includes(q));
+        if (statusFilter) filtered = filtered.filter(t => t.status === statusFilter);
+        renderTenantsTable(filtered);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TENANT DETAIL
+    // ═══════════════════════════════════════════════════════════
+    async function openTenantDetail(id) {
+        document.getElementById('detailModal').classList.remove('hidden');
+        document.getElementById('detailContent').innerHTML = '<div class="text-center text-sm text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tenant details...</div>';
+
+        try {
+            const data = await api(`/superadmin/api/tenants/${id}`);
+            if (!data) return;
+            const t = data.tenant;
+            const s = data.live_stats || {};
+
+            document.getElementById('detailTitle').textContent = t.name;
+            document.getElementById('detailContent').innerHTML = `
+                <div class="space-y-5">
+                    <!-- Status & Plan -->
+                    <div class="flex items-center gap-3">
+                        <span class="status-${t.status} text-sm font-medium px-3 py-1 rounded-full">${t.status}</span>
+                        <span class="status-${t.billing_status || 'trial'} text-sm font-medium px-3 py-1 rounded-full">${t.billing_status || 'trial'}</span>
+                        ${t.plan ? `<span class="bg-platform-50 text-platform-700 text-sm font-medium px-3 py-1 rounded-full">${t.plan.display_name}</span>` : ''}
+                    </div>
+
+                    <!-- Live Stats -->
+                    ${s.status ? `
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <div class="text-lg font-bold text-gray-900">${(s.total_conversations || 0).toLocaleString()}</div>
+                            <div class="text-[10px] text-gray-500 uppercase">Conversations</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <div class="text-lg font-bold text-gray-900">${(s.total_messages || 0).toLocaleString()}</div>
+                            <div class="text-[10px] text-gray-500 uppercase">Messages</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <div class="text-lg font-bold text-gray-900">${(s.total_products || 0).toLocaleString()}</div>
+                            <div class="text-[10px] text-gray-500 uppercase">Products</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <div class="text-lg font-bold ${s.status === 'online' ? 'text-green-600' : 'text-red-500'}">${s.status === 'online' ? '● Online' : '● Offline'}</div>
+                            <div class="text-[10px] text-gray-500 uppercase">Bot Status</div>
+                        </div>
+                    </div>` : ''}
+
+                    <!-- Info Grid -->
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Owner</div>
+                            <div class="text-gray-900">${esc(t.owner_name || '—')}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Email</div>
+                            <div class="text-gray-900">${esc(t.owner_email || '—')}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Slug</div>
+                            <div class="text-gray-900 font-mono text-xs">${esc(t.slug)}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Bot Name</div>
+                            <div class="text-gray-900">${esc(t.bot_name || 'Sofía')}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Store URL</div>
+                            <div class="text-gray-900">${t.store_url ? `<a href="${esc(t.store_url)}" target="_blank" class="text-platform-600 hover:underline">${esc(t.store_url)}</a>` : '—'}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Created</div>
+                            <div class="text-gray-900">${new Date(t.created_at).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+
+                    <!-- AI Config -->
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">AI Configuration</h4>
+                        <div class="grid grid-cols-3 gap-3 text-sm">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <div class="text-[10px] text-gray-400">Provider</div>
+                                <div class="font-medium">${esc(t.ai_provider || 'gemini')}</div>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <div class="text-[10px] text-gray-400">Model</div>
+                                <div class="font-medium text-xs">${esc(t.ai_model || 'default')}</div>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <div class="text-[10px] text-gray-400">Temperature</div>
+                                <div class="font-medium">${t.ai_temperature ?? 0.3}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Supabase -->
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Database</h4>
+                        <div class="bg-gray-50 rounded-lg p-3 text-xs font-mono text-gray-600">
+                            ${t.supabase_url ? esc(t.supabase_url) : '<span class="text-amber-600">Not configured</span>'}
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="border-t border-gray-100 pt-4 flex gap-3">
+                        <button onclick="openEditTenantModal('${t.id}')" class="px-4 py-2 rounded-lg text-sm bg-platform-50 text-platform-700 hover:bg-platform-100 transition"><i class="fas fa-pen mr-1"></i> Edit</button>
+                        ${t.status === 'active' ? `<button onclick="toggleTenantStatus('${t.id}', 'suspended')" class="px-4 py-2 rounded-lg text-sm bg-red-50 text-red-700 hover:bg-red-100 transition"><i class="fas fa-pause mr-1"></i> Suspend</button>` : ''}
+                        ${t.status === 'suspended' ? `<button onclick="toggleTenantStatus('${t.id}', 'active')" class="px-4 py-2 rounded-lg text-sm bg-green-50 text-green-700 hover:bg-green-100 transition"><i class="fas fa-play mr-1"></i> Activate</button>` : ''}
+                        ${t.status === 'setup' ? `<button onclick="toggleTenantStatus('${t.id}', 'active')" class="px-4 py-2 rounded-lg text-sm bg-green-50 text-green-700 hover:bg-green-100 transition"><i class="fas fa-check mr-1"></i> Activate</button>` : ''}
+                        <button onclick="if(confirm('Delete this tenant?')) deleteTenant('${t.id}')" class="px-4 py-2 rounded-lg text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition"><i class="fas fa-trash mr-1"></i> Delete</button>
+                    </div>
+                </div>
+            `;
+        } catch (e) {
+            document.getElementById('detailContent').innerHTML = `<div class="text-center text-sm text-red-500 py-8">Error loading details: ${esc(e.message)}</div>`;
+        }
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').classList.add('hidden');
+    }
+
+    async function toggleTenantStatus(id, newStatus) {
+        try {
+            await api(`/superadmin/api/tenants/${id}`, 'PUT', { status: newStatus });
+            closeDetailModal();
+            loadTenants();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    async function deleteTenant(id) {
+        try {
+            await api(`/superadmin/api/tenants/${id}`, 'DELETE');
+            closeDetailModal();
+            loadTenants();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CREATE TENANT
+    // ═══════════════════════════════════════════════════════════
+    function openCreateModal() {
+        document.getElementById('createModal').classList.remove('hidden');
+        document.getElementById('createError').classList.add('hidden');
+        document.getElementById('createTenantForm').reset();
+        document.getElementById('ct_bot').value = 'Sofía';
+    }
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.add('hidden');
+    }
+
+    // Auto-generate slug from name
+    document.getElementById('ct_name').addEventListener('input', function() {
+        const slug = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        document.getElementById('ct_slug').value = slug;
+    });
+
+    document.getElementById('createTenantForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('createBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        document.getElementById('createError').classList.add('hidden');
+
+        const payload = {
+            name: document.getElementById('ct_name').value.trim(),
+            slug: document.getElementById('ct_slug').value.trim(),
+            owner_email: document.getElementById('ct_email').value.trim(),
+            owner_name: document.getElementById('ct_owner').value.trim(),
+            bot_name: document.getElementById('ct_bot').value.trim() || 'Sofía',
+            store_url: document.getElementById('ct_store').value.trim(),
+        };
+        const planId = document.getElementById('ct_plan').value;
+        if (planId) payload.plan_id = planId;
+        const supaUrl = document.getElementById('ct_supa_url').value.trim();
+        const supaKey = document.getElementById('ct_supa_key').value.trim();
+        if (supaUrl) payload.supabase_url = supaUrl;
+        if (supaKey) payload.supabase_anon_key = supaKey;
+
+        try {
+            await api('/superadmin/api/tenants', 'POST', payload);
+            closeCreateModal();
+            loadTenants();
+            if (currentTab === 'overview') loadOverview();
+        } catch (e) {
+            const errDiv = document.getElementById('createError');
+            errDiv.textContent = e.message;
+            errDiv.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus"></i> Create Tenant';
+        }
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // PLANS TAB
+    // ═══════════════════════════════════════════════════════════
+    const FEATURE_KEYS = [
+        // ── Channels ──
+        'webchat','whatsapp','voice',
+        // ── Core AI ──
+        'ai_conversational','smart_catalog','custom_persona','spanish_localization',
+        // ── Sales ──
+        'in_chat_checkout','smart_upsell','abandoned_cart_recovery','price_drop_alerts',
+        // ── Engagement ──
+        'customer_memory','visual_search','reengagement',
+        // ── Operations ──
+        'analytics','escalation','shipping_notifications','discount_codes',
+        // ── Platform ──
+        'api_access','custom_domain','dedicated_support'
+    ];
+
+    const FEATURE_LABELS = {
+        webchat: 'Web Chat', whatsapp: 'WhatsApp', voice: 'Voice Notes',
+        ai_conversational: 'AI Conversacional', smart_catalog: 'Smart Catalog Sync', custom_persona: 'Custom Persona', spanish_localization: 'Spanish Localization',
+        in_chat_checkout: 'In-Chat Checkout (COD)', smart_upsell: 'Smart Upsell', abandoned_cart_recovery: 'Abandoned Cart Recovery', price_drop_alerts: 'Price Drop Alerts',
+        customer_memory: 'Customer Memory', visual_search: 'Visual Product Search', reengagement: 'Re-engagement Automático',
+        analytics: 'Analytics Dashboard', escalation: 'Smart Escalation', shipping_notifications: 'Shipping Notifications', discount_codes: 'Discount Codes',
+        api_access: 'API Access', custom_domain: 'Custom Domain', dedicated_support: 'Dedicated Support'
+    };
+
+    const FEATURE_GROUPS = {
+        'Channels': ['webchat','whatsapp','voice'],
+        'Core AI': ['ai_conversational','smart_catalog','custom_persona','spanish_localization'],
+        'Sales': ['in_chat_checkout','smart_upsell','abandoned_cart_recovery','price_drop_alerts'],
+        'Engagement': ['customer_memory','visual_search','reengagement'],
+        'Operations': ['analytics','escalation','shipping_notifications','discount_codes'],
+        'Platform': ['api_access','custom_domain','dedicated_support'],
+    };
+
+    // Build feature checkboxes in the plan modal
+    (function initFeatureCheckboxes() {
+        const container = document.getElementById('featureCheckboxes');
+        if (!container) return;
+        Object.entries(FEATURE_GROUPS).forEach(([group, keys], idx) => {
+            const groupDiv = document.createElement('div');
+            groupDiv.innerHTML = `
+                <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 ${idx > 0 ? 'pt-2 border-t border-gray-100' : ''}">${group}</div>
+                <div class="grid grid-cols-2 gap-1.5">
+                    ${keys.map(k => `<label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" id="pf_ft_${k}" class="rounded"> ${FEATURE_LABELS[k]}</label>`).join('')}
+                </div>
+            `;
+            container.appendChild(groupDiv);
+        });
+    })();
+
+    async function loadPlans() {
+        try {
+            const data = await api('/superadmin/api/plans');
+            if (!data) return;
+            allPlans = data.plans;
+
+            document.getElementById('plansGrid').innerHTML = allPlans.map((p, i) => {
+                const popular = i === 1;
+                const features = p.features || {};
+                return `
+                <div class="glass-card rounded-xl p-6 ${popular ? 'ring-2 ring-platform-500 relative' : ''}">
+                    ${popular ? '<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-platform-600 text-white text-xs font-bold px-3 py-1 rounded-full">Most Popular</div>' : ''}
+                    <div class="text-center mb-5">
+                        <h3 class="text-lg font-bold text-gray-900">${esc(p.display_name)}</h3>
+                        <div class="mt-2">
+                            <span class="text-3xl font-extrabold text-gray-900">$${p.price_usd}</span>
+                            <span class="text-sm text-gray-500">/mo</span>
+                        </div>
+                    </div>
+                    <div class="space-y-2.5 text-sm text-gray-600 mb-5">
+                        <div class="flex items-center gap-2"><i class="fas fa-comments text-platform-500 w-4"></i> ${p.max_conversations_mo.toLocaleString()} conversations/mo</div>
+                        <div class="flex items-center gap-2"><i class="fas fa-box text-platform-500 w-4"></i> ${p.max_products.toLocaleString()} products</div>
+                        ${Object.entries(FEATURE_GROUPS).map(([group, keys]) => `
+                            <div class="pt-1.5 mt-1.5 border-t border-gray-50">
+                                <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">${group}</div>
+                                ${keys.map(k => {
+                                    const label = FEATURE_LABELS[k] || k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                    return `<div class="flex items-center gap-2"><i class="fas fa-${features[k] ? 'check text-green-500' : 'times text-gray-300'} w-4"></i> ${label}</div>`;
+                                }).join('')}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="flex gap-2 pt-3 border-t border-gray-100">
+                        <button onclick="openPlanModal('${p.id}')" class="flex-1 text-xs text-platform-600 hover:bg-platform-50 py-2 rounded-lg transition font-medium">
+                            <i class="fas fa-pen mr-1"></i> Edit
+                        </button>
+                        <button onclick="if(confirm('Deactivate this plan?')) deletePlan('${p.id}')" class="flex-1 text-xs text-red-500 hover:bg-red-50 py-2 rounded-lg transition font-medium">
+                            <i class="fas fa-trash mr-1"></i> Remove
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            console.error('Plans load error:', e);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // PLAN MODAL (Create / Edit)
+    // ═══════════════════════════════════════════════════════════
+    function openPlanModal(planId = null) {
+        const modal = document.getElementById('planModal');
+        const form = document.getElementById('planForm');
+        form.reset();
+        document.getElementById('pf_id').value = '';
+        document.getElementById('planError').classList.add('hidden');
+
+        if (planId) {
+            const p = allPlans.find(x => x.id === planId);
+            if (!p) return;
+            document.getElementById('planModalTitle').textContent = `Edit: ${p.display_name}`;
+            document.getElementById('pf_id').value = p.id;
+            document.getElementById('pf_name').value = p.name;
+            document.getElementById('pf_name').disabled = true; // can't change internal name
+            document.getElementById('pf_display').value = p.display_name;
+            document.getElementById('pf_price').value = p.price_usd;
+            document.getElementById('pf_convs').value = p.max_conversations_mo;
+            document.getElementById('pf_products').value = p.max_products;
+            const ft = p.features || {};
+            FEATURE_KEYS.forEach(k => { document.getElementById('pf_ft_' + k).checked = !!ft[k]; });
+        } else {
+            document.getElementById('planModalTitle').textContent = 'New Plan';
+            document.getElementById('pf_name').disabled = false;
+        }
+        modal.classList.remove('hidden');
+    }
+
+    function closePlanModal() {
+        document.getElementById('planModal').classList.add('hidden');
+        document.getElementById('pf_name').disabled = false;
+    }
+
+    document.getElementById('planForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('planBtn');
+        const btnText = document.getElementById('planBtnText');
+        btn.disabled = true;
+        btnText.textContent = 'Saving...';
+        document.getElementById('planError').classList.add('hidden');
+
+        const features = {};
+        FEATURE_KEYS.forEach(k => { features[k] = document.getElementById('pf_ft_' + k).checked; });
+
+        const planId = document.getElementById('pf_id').value;
+        const payload = {
+            display_name: document.getElementById('pf_display').value.trim(),
+            max_conversations_mo: parseInt(document.getElementById('pf_convs').value),
+            max_products: parseInt(document.getElementById('pf_products').value),
+            price_usd: parseFloat(document.getElementById('pf_price').value),
+            features: features,
+        };
+
+        try {
+            if (planId) {
+                await api(`/superadmin/api/plans/${planId}`, 'PUT', payload);
+            } else {
+                payload.name = document.getElementById('pf_name').value.trim();
+                await api('/superadmin/api/plans', 'POST', payload);
+            }
+            closePlanModal();
+            loadPlans();
+        } catch (e) {
+            const errDiv = document.getElementById('planError');
+            errDiv.textContent = e.message;
+            errDiv.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btnText.textContent = 'Save Plan';
+        }
+    });
+
+    async function deletePlan(planId) {
+        try {
+            await api(`/superadmin/api/plans/${planId}`, 'DELETE');
+            loadPlans();
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TENANT EDIT MODAL
+    // ═══════════════════════════════════════════════════════════
+    function openEditTenantModal(tenantId) {
+        const t = allTenants.find(x => x.id === tenantId);
+        if (!t) return;
+        document.getElementById('editTenantError').classList.add('hidden');
+        document.getElementById('et_id').value = t.id;
+        document.getElementById('et_name').value = t.name || '';
+        document.getElementById('et_bot').value = t.bot_name || 'Sofía';
+        document.getElementById('et_status').value = t.status || 'active';
+        document.getElementById('et_store').value = t.store_url || '';
+        document.getElementById('et_ai_provider').value = t.ai_provider || 'gemini';
+        document.getElementById('et_ai_temp').value = t.ai_temperature ?? 0.3;
+        document.getElementById('et_ai_tokens').value = t.ai_max_tokens || 500;
+        document.getElementById('et_supa_url').value = t.supabase_url || '';
+        document.getElementById('et_supa_key').value = t.supabase_anon_key || '';
+        document.getElementById('editTenantTitle').textContent = `Edit: ${t.name}`;
+
+        // Populate plan select
+        const sel = document.getElementById('et_plan');
+        sel.innerHTML = '<option value="">No plan</option>' + allPlans.map(p => `<option value="${p.id}" ${t.plan_id === p.id ? 'selected' : ''}>${p.display_name} ($${p.price_usd}/mo)</option>`).join('');
+
+        closeDetailModal();
+        document.getElementById('editTenantModal').classList.remove('hidden');
+    }
+
+    function closeEditTenantModal() {
+        document.getElementById('editTenantModal').classList.add('hidden');
+    }
+
+    document.getElementById('editTenantForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('editTenantBtn');
+        btn.disabled = true;
+        document.getElementById('editTenantError').classList.add('hidden');
+
+        const tenantId = document.getElementById('et_id').value;
+        const payload = {
+            name: document.getElementById('et_name').value.trim(),
+            bot_name: document.getElementById('et_bot').value.trim(),
+            status: document.getElementById('et_status').value,
+            store_url: document.getElementById('et_store').value.trim(),
+            ai_provider: document.getElementById('et_ai_provider').value,
+            ai_temperature: parseFloat(document.getElementById('et_ai_temp').value),
+            ai_max_tokens: parseInt(document.getElementById('et_ai_tokens').value),
+            supabase_url: document.getElementById('et_supa_url').value.trim(),
+            supabase_anon_key: document.getElementById('et_supa_key').value.trim(),
+        };
+        const planId = document.getElementById('et_plan').value;
+        if (planId) payload.plan_id = planId;
+
+        try {
+            await api(`/superadmin/api/tenants/${tenantId}`, 'PUT', payload);
+            closeEditTenantModal();
+            loadTenants();
+            if (currentTab === 'overview') loadOverview();
+        } catch (e) {
+            const errDiv = document.getElementById('editTenantError');
+            errDiv.textContent = e.message;
+            errDiv.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // LOGS TAB
+    // ═══════════════════════════════════════════════════════════
+    async function loadLogs() {
+        try {
+            const data = await api('/superadmin/api/logs');
+            if (!data) return;
+            document.getElementById('logsCount').textContent = `${data.total} entries`;
+
+            if (!data.logs.length) {
+                document.getElementById('logsList').innerHTML = '<div class="text-center text-sm text-gray-400 py-8">No activity yet</div>';
+                return;
+            }
+
+            const actionIcons = {
+                'tenant_created': 'fa-plus-circle text-green-500',
+                'tenant_updated': 'fa-pen text-blue-500',
+                'tenant_deleted': 'fa-trash text-red-500',
+            };
+
+            document.getElementById('logsList').innerHTML = data.logs.map(l => {
+                const icon = actionIcons[l.action] || 'fa-circle text-gray-400';
+                const adminName = l.admin ? l.admin.name : 'System';
+                const tenantName = l.tenant ? l.tenant.name : '—';
+                const time = new Date(l.created_at).toLocaleString();
+                return `
+                <div class="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                    <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas ${icon} text-xs"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm text-gray-900">
+                            <span class="font-medium">${esc(adminName)}</span>
+                            <span class="text-gray-500">${formatAction(l.action)}</span>
+                            ${tenantName !== '—' ? `<span class="font-medium">${esc(tenantName)}</span>` : ''}
+                        </div>
+                        ${l.details && Object.keys(l.details).length ? `<div class="text-xs text-gray-400 mt-0.5 font-mono">${esc(JSON.stringify(l.details))}</div>` : ''}
+                    </div>
+                    <div class="text-xs text-gray-400 flex-shrink-0">${time}</div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            console.error('Logs load error:', e);
+        }
+    }
+
+    function formatAction(action) {
+        const map = {
+            'tenant_created': ' created tenant ',
+            'tenant_updated': ' updated tenant ',
+            'tenant_deleted': ' deleted tenant ',
+        };
+        return map[action] || ` ${action} `;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function esc(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════
+    (async () => {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { window.location.href = '/superadmin/login'; return; }
+        token = session.access_token;
+
+        // Get user info
+        const { data: { user } } = await sb.auth.getUser();
+        if (user) {
+            document.getElementById('userName').textContent = user.user_metadata?.name || user.email?.split('@')[0] || 'Admin';
+            document.getElementById('userEmail').textContent = user.email || '';
+            document.getElementById('userAvatar').textContent = (user.email || 'SA').substring(0, 2).toUpperCase();
+        }
+
+        showTab('overview');
+    })();
+    </script>
+</body>
+</html>

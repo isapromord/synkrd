@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sofía HQ — Iniciar Sesión</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#fdf2f8', 100: '#fce7f3', 200: '#fbcfe8', 300: '#f9a8d4',
+                            400: '#f472b6', 500: '#ec4899', 600: '#db2777', 700: '#be185d',
+                            800: '#9d174d', 900: '#831843'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            overscroll-behavior-y: none;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .dark .glass-card {
+            background: rgba(31, 41, 55, 0.85);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+        }
+
+        .form-slide {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .form-slide.hidden-form {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            position: absolute;
+            width: 100%;
+        }
+
+        .form-slide.active-form {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            position: relative;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i.field-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .input-group input:focus~i.field-icon,
+        .input-group input:focus+i.field-icon {
+            color: #ec4899;
+        }
+
+        .input-group input {
+            padding-left: 42px;
+        }
+
+        .toggle-pw {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #9ca3af;
+            font-size: 14px;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+
+        .toggle-pw:hover {
+            color: #ec4899;
+        }
+
+        .bg-mesh {
+            background-color: #fdf2f8;
+            background-image:
+                radial-gradient(at 40% 20%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, rgba(219, 39, 119, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, rgba(244, 114, 182, 0.1) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(190, 24, 93, 0.08) 0px, transparent 50%);
+        }
+
+        .dark .bg-mesh {
+            background-color: #0f172a;
+            background-image:
+                radial-gradient(at 40% 20%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, rgba(219, 39, 119, 0.06) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, rgba(244, 114, 182, 0.05) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(190, 24, 93, 0.04) 0px, transparent 50%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #db2777 0%, #be185d 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-6px);
+            }
+
+            40%,
+            80% {
+                transform: translateX(6px);
+            }
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.5s ease-out;
+        }
+    </style>
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+</head>
+
+<body class="bg-mesh min-h-[100dvh] flex flex-col items-center justify-center font-sans p-4 transition-colors">
+
+    <!-- Theme Toggle (floating) -->
+    <button onclick="toggleTheme()"
+        class="fixed top-4 right-4 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md hover:bg-white dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all hover:scale-105">
+        <i class="fas fa-moon dark:hidden"></i>
+        <i class="fas fa-sun hidden dark:block"></i>
+    </button>
+
+    <!-- Main Card -->
+    <div class="w-full max-w-md animate-in">
+
+        <!-- Logo / Brand -->
+        <div class="text-center mb-8">
+            <div
+                class="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-xl mx-auto mb-4 rotate-3 hover:rotate-0 transition-transform">
+                S
+            </div>
+            <h1 class="text-3xl font-extrabold text-gray-800 dark:text-white tracking-tight">Sofía HQ</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">SynkDR Command Center</p>
+        </div>
+
+        <!-- Glass Card -->
+        <div class="glass-card rounded-2xl shadow-2xl p-6 md:p-8 relative overflow-hidden">
+
+            <!-- ═══ LOGIN FORM ═══ -->
+            <div id="form-login" class="form-slide active-form">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-1">Iniciar Sesión</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Accede a tu panel de control</p>
+
+                <div id="login-error"
+                    class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="login-error-text"></span>
+                </div>
+
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div class="input-group">
+                        <input type="email" id="login-email" required autocomplete="email"
+                            class="w-full border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            placeholder="correo@ejemplo.com">
+                        <i class="fas fa-envelope field-icon"></i>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="password" id="login-password" required autocomplete="current-password"
+                            minlength="6"
+                            class="w-full border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            placeholder="Contraseña">
+                        <i class="fas fa-lock field-icon"></i>
+                        <button type="button" class="toggle-pw" onclick="togglePassword('login-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" id="btn-login"
+                        class="w-full btn-primary text-white rounded-xl py-3 font-bold text-sm shadow-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    </button>
+                </form>
+
+                <div class="flex justify-between items-center mt-5 text-sm">
+                    <button onclick="showForm('forgot')"
+                        class="text-brand-500 hover:text-brand-600 dark:hover:text-brand-400 font-medium transition-colors">
+                        ¿Olvidaste tu contraseña?
+                    </button>
+                    <button onclick="showForm('register')"
+                        class="text-gray-500 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 font-medium transition-colors">
+                        Crear cuenta
+                    </button>
+                </div>
+            </div>
+
+            <!-- ═══ REGISTER FORM ═══ -->
+            <div id="form-register" class="form-slide hidden-form">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-1">Crear Cuenta</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Registra una cuenta de administrador</p>
+
+                <div id="register-error"
+                    class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="register-error-text"></span>
+                </div>
+
+                <div id="register-success"
+                    class="hidden bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 text-sm rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="register-success-text"></span>
+                </div>
+
+                <form onsubmit="handleRegister(event)" class="space-y-4">
+                    <div class="input-group">
+                        <input type="email" id="register-email" required autocomplete="email"
+                            class="w-full border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            placeholder="correo@ejemplo.com">
+                        <i class="fas fa-envelope field-icon"></i>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="password" id="register-password" required autocomplete="new-password" minlength="6"
+                            class="w-full border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            placeholder="Contraseña (mín. 6 caracteres)">
+                        <i class="fas fa-lock field-icon"></i>
+                        <button type="button" class="toggle-pw" onclick="togglePassword('register-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="password" id="register-confirm" required autocomplete="new-password" minlength="6"
+                            class="w-full border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            placeholder="Confirmar contraseña">
+                        <i class="fas fa-shield-alt field-icon"></i>
+                        <button type="button" class="toggle-pw" onclick="togglePassword('register-confirm', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" id="btn-register"
+                        class="w-full btn-primary text-white rounded-xl py-3 font-bold text-sm shadow-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-user-plus"></i> Crear Cuenta
+                    </button>
+                </form>
+
+                <div class="text-center mt-5">
+                    <button onclick="showForm('login')"
+                        class="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 font-medium transition-colors">
+                        <i class="fas fa-arrow-left mr-1"></i> Volver a iniciar sesión
+                    </button>
+                </div>
+            </div>
+
+            <!-- ═══ FORGOT PASSWORD FORM ═══ -->
+            <div id="form-forgot" class="form-slide hidden-form">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-1">Recuperar Contraseña</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Te enviaremos un enlace para restablecer tu
+                    contraseña</p>
+
+                <div id="forgot-error"
+                    class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="forgot-error-text"></span>
+                </div>
+
+                <div id="forgot-success"
+                    class="hidden bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 text-sm rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="forgot-success-text"></span>
+                </div>
+
+                <form onsubmit="handleForgotPassword(event)" class="space-y-4">
+                    <div class="input-group">
+                        <input type="email" id="forgot-email" required autocomplete="email"
+                            class="w-full border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            placeholder="correo@ejemplo.com">
+                        <i class="fas fa-envelope field-icon"></i>
+                    </div>
+
+                    <button type="submit" id="btn-forgot"
+                        class="w-full btn-primary text-white rounded-xl py-3 font-bold text-sm shadow-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-paper-plane"></i> Enviar Enlace
+                    </button>
+                </form>
+
+                <div class="text-center mt-5">
+                    <button onclick="showForm('login')"
+                        class="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 font-medium transition-colors">
+                        <i class="fas fa-arrow-left mr-1"></i> Volver a iniciar sesión
+                    </button>
+                </div>
+            </div>
+
+            <!-- ═══ RESET PASSWORD FORM ═══ -->
+            <div id="form-reset" class="form-slide hidden-form">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-1">Nueva Contraseña</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Ingresa tu nueva contraseña</p>
+
+                <div id="reset-error"
+                    class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="reset-error-text"></span>
+                </div>
+
+                <div id="reset-success"
+                    class="hidden bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 text-sm rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="reset-success-text"></span>
+                </div>
+
+                <form onsubmit="handleResetPassword(event)" class="space-y-4">
+                    <div class="input-group">
+                        <input type="password" id="reset-password" required autocomplete="new-password" minlength="6"
+                            class="w-full border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            placeholder="Nueva contraseña (mín. 6 caracteres)">
+                        <i class="fas fa-lock field-icon"></i>
+                        <button type="button" class="toggle-pw" onclick="togglePassword('reset-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="password" id="reset-confirm" required autocomplete="new-password" minlength="6"
+                            class="w-full border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            placeholder="Confirmar nueva contraseña">
+                        <i class="fas fa-shield-alt field-icon"></i>
+                        <button type="button" class="toggle-pw" onclick="togglePassword('reset-confirm', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" id="btn-reset"
+                        class="w-full btn-primary text-white rounded-xl py-3 font-bold text-sm shadow-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-key"></i> Cambiar Contraseña
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <p class="text-center text-xs text-gray-400 dark:text-gray-600 mt-6">
+            Sofía HQ v1.0 · SynkDR Engine · synkdr.com
+        </p>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════
+        // SUPABASE CLIENT
+        // ═══════════════════════════════════════════════════════════
+
+        const SUPABASE_URL = 'https://votyvfjbrjmcghekaatk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvdHl2ZmpicmptY2doZWthYXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTA3NDksImV4cCI6MjA4Nzk2Njc0OX0.-vo_fUfBzty-mPXn61tv-v8azBcXeL3nF0JBEgYopK0';
+
+        const supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ═══════════════════════════════════════════════════════════
+        // CHECK IF ALREADY LOGGED IN
+        // ═══════════════════════════════════════════════════════════
+
+        // Check if already logged in
+        (async () => {
+            const { data: { session } } = await supaClient.auth.getSession();
+            if (session) {
+                console.log('[LOGIN] Already has session, going to admin');
+                window.location.replace('/admin');
+            }
+        })();
+
+        supaClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                showForm('reset');
+            }
+        });
+
+        // Check for password reset flow in URL hash
+        (() => {
+            const hash = window.location.hash;
+            if (hash && hash.includes('type=recovery')) {
+                showForm('reset');
+            } else if (hash && hash.includes('signup')) {
+                showForm('register');
+            }
+        })();
+
+        // ═══════════════════════════════════════════════════════════
+        // THEME
+        // ═══════════════════════════════════════════════════════════
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // FORM NAVIGATION
+        // ═══════════════════════════════════════════════════════════
+
+        function showForm(formName) {
+            const forms = ['login', 'register', 'forgot', 'reset'];
+            forms.forEach(f => {
+                const el = document.getElementById(`form-${f}`);
+                if (f === formName) {
+                    el.classList.remove('hidden-form');
+                    el.classList.add('active-form');
+                } else {
+                    el.classList.remove('active-form');
+                    el.classList.add('hidden-form');
+                }
+            });
+
+            // Clear all error/success messages
+            document.querySelectorAll('[id$="-error"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id$="-success"]').forEach(el => el.classList.add('hidden'));
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // PASSWORD TOGGLE
+        // ═══════════════════════════════════════════════════════════
+
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // ERROR / SUCCESS DISPLAY
+        // ═══════════════════════════════════════════════════════════
+
+        function showError(formPrefix, message) {
+            const errorEl = document.getElementById(`${formPrefix}-error`);
+            const textEl = document.getElementById(`${formPrefix}-error-text`);
+            textEl.textContent = message;
+            errorEl.classList.remove('hidden');
+
+            // Shake animation
+            const card = errorEl.closest('.glass-card');
+            card.classList.add('shake');
+            setTimeout(() => card.classList.remove('shake'), 500);
+        }
+
+        function showSuccess(formPrefix, message) {
+            const successEl = document.getElementById(`${formPrefix}-success`);
+            const textEl = document.getElementById(`${formPrefix}-success-text`);
+            textEl.textContent = message;
+            successEl.classList.remove('hidden');
+        }
+
+        function clearMessages(formPrefix) {
+            document.getElementById(`${formPrefix}-error`)?.classList.add('hidden');
+            document.getElementById(`${formPrefix}-success`)?.classList.add('hidden');
+        }
+
+        function setLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (loading) {
+                btn.dataset.originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+            } else {
+                btn.innerHTML = btn.dataset.originalHtml;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // TRANSLATE SUPABASE ERRORS TO SPANISH
+        // ═══════════════════════════════════════════════════════════
+
+        function translateError(msg) {
+            const map = {
+                'Invalid login credentials': 'Correo o contraseña incorrectos',
+                'Email not confirmed': 'Tu correo aún no ha sido confirmado. Revisa tu bandeja de entrada.',
+                'User already registered': 'Este correo ya está registrado. Intenta iniciar sesión.',
+                'Password should be at least 6 characters': 'La contraseña debe tener al menos 6 caracteres',
+                'Unable to validate email address: invalid format': 'El formato del correo no es válido',
+                'For security purposes, you can only request this after': 'Por seguridad, debes esperar antes de solicitar otro enlace',
+                'Email rate limit exceeded': 'Demasiados intentos. Espera unos minutos.',
+                'New password should be different from the old password': 'La nueva contraseña debe ser diferente a la anterior',
+            };
+
+            for (const [en, es] of Object.entries(map)) {
+                if (msg.includes(en)) return es;
+            }
+            return msg;
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // AUTH HANDLERS
+        // ═══════════════════════════════════════════════════════════
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            clearMessages('login');
+
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            setLoading('btn-login', true);
+
+            const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
+
+            setLoading('btn-login', false);
+
+            if (error) {
+                showError('login', translateError(error.message));
+                return;
+            }
+
+            // Success — wait for session to be stored, then redirect
+            console.log('[LOGIN] Sign in successful, session stored');
+            window.location.replace('/admin');
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            clearMessages('register');
+
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+
+            if (password !== confirm) {
+                showError('register', 'Las contraseñas no coinciden');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('register', 'La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
+
+            setLoading('btn-register', true);
+
+            const { data, error } = await supaClient.auth.signUp({ email, password });
+
+            setLoading('btn-register', false);
+
+            if (error) {
+                showError('register', translateError(error.message));
+                return;
+            }
+
+            // Check if email confirmation is required
+            if (data.user && data.user.identities && data.user.identities.length === 0) {
+                showError('register', 'Este correo ya está registrado. Intenta iniciar sesión.');
+                return;
+            }
+
+            if (data.session) {
+                // Auto-confirmed — redirect directly
+                window.location.href = '/admin';
+            } else {
+                // Email confirmation required
+                showSuccess('register', '¡Cuenta creada! Revisa tu correo para confirmar tu cuenta.');
+            }
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            clearMessages('forgot');
+
+            const email = document.getElementById('forgot-email').value.trim();
+
+            setLoading('btn-forgot', true);
+
+            const { error } = await supaClient.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/login#type=recovery'
+            });
+
+            setLoading('btn-forgot', false);
+
+            if (error) {
+                showError('forgot', translateError(error.message));
+                return;
+            }
+
+            showSuccess('forgot', 'Enlace de recuperación enviado. Revisa tu correo (incluye spam).');
+        }
+
+        async function handleResetPassword(e) {
+            e.preventDefault();
+            clearMessages('reset');
+
+            const password = document.getElementById('reset-password').value;
+            const confirm = document.getElementById('reset-confirm').value;
+
+            if (password !== confirm) {
+                showError('reset', 'Las contraseñas no coinciden');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('reset', 'La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
+
+            setLoading('btn-reset', true);
+
+            const { error } = await supaClient.auth.updateUser({ password });
+
+            setLoading('btn-reset', false);
+
+            if (error) {
+                showError('reset', translateError(error.message));
+                return;
+            }
+
+            showSuccess('reset', '¡Contraseña actualizada! Redirigiendo...');
+            setTimeout(() => {
+                window.location.href = '/admin';
+            }, 1500);
+        }
+    </script>
+</body>
+
+</html>
