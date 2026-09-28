@@ -150,25 +150,25 @@ class AnalyticsEngine:
         }
 
     def to_db_rows(self) -> list:
-        """Export daily stats as rows for Supabase persistence."""
+        """Export daily stats as rows matching Supabase analytics_daily schema."""
         rows = []
         for day_key, stats in self._daily_stats.items():
             response_times = stats["response_times_ms"]
-            avg_latency = int(sum(response_times) / len(response_times)) if response_times else 0
+            total_latency = int(sum(response_times)) if response_times else 0
             started = stats["conversations_started"]
             resolved = stats["conversations_resolved"]
-            resolution_rate = round((resolved / started) * 100) if started > 0 else 0
+            under_3s = sum(1 for t in response_times if t < 3000)
 
             rows.append({
                 "date": day_key,
                 "conversations_started": started,
                 "conversations_resolved": resolved,
-                "conversations_escalated": stats["conversations_escalated"],
-                "resolution_rate_pct": resolution_rate,
-                "messages_total": stats["messages_total"],
-                "avg_response_ms": avg_latency,
-                "tier1_count": stats["tier1_count"],
-                "tier2_count": stats["tier2_count"],
+                "escalations": stats.get("conversations_escalated", 0),
+                "messages_total": stats.get("messages_total", 0),
+                "total_latency_ms": total_latency,
+                "messages_under_3s": under_3s,
+                "messages_tier_1": stats.get("tier1_count", 0),
+                "messages_tier_2": stats.get("tier2_count", 0),
             })
         return rows
 
