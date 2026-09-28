@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos y Condiciones de Servicio | SynkRD — Sofía AI</title>
+    <meta name="description" content="Términos y Condiciones de Uso del software y plataforma SynkRD y Sofía AI. Condiciones de servicio, deslindes legales y responsabilidades.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://synkdr.com/terms">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --brand: #8B5CF6;
+            --brand-light: #A78BFA;
+            --brand-glow: rgba(139, 92, 246, 0.4);
+            --accent: #EC4899;
+            --bg-dark: #0B0714;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --text: #E8E4F0;
+            --text-dim: rgba(232, 228, 240, 0.65);
+            --border: rgba(139, 92, 246, 0.18);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.7;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* ═══ NAVBAR ═══ */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 18px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            background: rgba(11, 7, 20, 0.85);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .nav-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--brand), var(--accent));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        .nav-title {
+            font-weight: 800;
+            font-size: 18px;
+            color: white;
+        }
+
+        .nav-back {
+            color: var(--brand-light);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .nav-back:hover {
+            color: #FFFFFF;
+        }
+
+        /* ═══ CONTAINER ═══ */
+        .legal-container {
+            max-width: 900px;
+            margin: 60px auto 100px;
+            padding: 0 24px;
+        }
+
+        .legal-header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .legal-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 100px;
+            font-size: 12px;
+            color: var(--brand-light);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 16px;
+        }
+
+        .legal-header h1 {
+            font-size: clamp(2.2rem, 4vw, 3rem);
+            font-weight: 900;
+            margin-bottom: 12px;
+            color: #FFFFFF;
+            letter-spacing: -0.5px;
+        }
+
+        .legal-date {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .legal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px 40px;
+        }
+
+        .legal-section {
+            margin-bottom: 36px;
+        }
+
+        .legal-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .legal-section h2 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legal-section h2 i {
+            color: var(--brand-light);
+            font-size: 1.1rem;
+        }
+
+        .legal-section p, .legal-section ul {
+            color: var(--text-dim);
+            font-size: 0.98rem;
+            line-height: 1.8;
+            margin-bottom: 14px;
+        }
+
+        .legal-section ul {
+            padding-left: 24px;
+        }
+
+        .legal-section li {
+            margin-bottom: 8px;
+        }
+
+        .shield-box {
+            background: rgba(236, 72, 153, 0.06);
+            border: 1px solid rgba(236, 72, 153, 0.25);
+            border-left: 4px solid var(--accent);
+            padding: 20px 24px;
+            border-radius: 0 14px 14px 0;
+            margin: 24px 0;
+        }
+
+        .shield-box h3 {
+            color: #F472B6;
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shield-box p {
+            color: #E2E8F0;
+            margin-bottom: 0;
+            font-size: 0.93rem;
+            line-height: 1.7;
+        }
+
+        /* ═══ FOOTER ═══ */
+        footer {
+            padding: 36px 24px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            background: #08050e;
+        }
+
+        footer p {
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+
+        footer a {
+            color: var(--brand-light);
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .legal-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══ NAVBAR ═══ -->
+    <nav>
+        <a href="/" class="nav-brand">
+            <div class="nav-logo">S</div>
+            <span class="nav-title">SynkRD</span>
+        </a>
+        <a href="/" class="nav-back"><i class="fas fa-arrow-left"></i> Volver al Inicio</a>
+    </nav>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <div class="legal-container">
+        <div class="legal-header">
+            <div class="legal-badge">Contrato de Servicio</div>
+            <h1>Términos y Condiciones de Uso</h1>
+            <p class="legal-date">Última actualización: 15 de Septiembre de 2026 · Versión 2.0</p>
+        </div>
+
+        <div class="legal-content">
+            <div class="legal-section">
+                <h2><i class="fas fa-file-contract"></i> 1. Aceptación de los Términos</h2>
+                <p>
+                    Al registrarse, acceder o utilizar la plataforma de software como servicio (SaaS) <strong>SynkRD</strong>, los widgets de chat web, las integraciones con Shopify y el asistente conversacional <strong>Sofía AI</strong>, usted ("el Suscriptor", "la Tienda" o "el Usuario") acepta quedar vinculado legalmente por los presentes Términos y Condiciones de Servicio. Si no está de acuerdo con alguna cláusula, debe abstenerse de utilizar el servicio.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-robot"></i> 2. Naturaleza del Servicio y Deslinde de Inteligencia Artificial</h2>
+                <p>
+                    SynkRD ofrece una herramienta de software basada en Inteligencia Artificial Generativa y Automatización de Procesos Comerciales diseñada para asistir en la atención al cliente, consultas de catálogo, transcripción de notas de voz y estructuración de pedidos.
+                </p>
+                <div class="shield-box">
+                    <h3><i class="fas fa-shield-virus"></i> Cláusula de Limitación de Responsabilidad de IA</h3>
+                    <p>
+                        Los modelos de Inteligencia Artificial operan mediante algoritmos probabilísticos y de lenguaje natural. Aunque SynkRD implementa salvaguardas avanzadas para restringir respuestas al contexto del catálogo de la tienda, <strong>SynkRD no garantiza infalibilidad absoluta ni ausencia total de imprecisiones (alucinaciones)</strong> en las respuestas generadas por el bot. El suscriptor reconoce que la revisión de precios, promociones, disponibilidad real de stock y políticas de venta es responsabilidad exclusiva de la tienda comercial.
+                    </p>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-truck-loading"></i> 3. Deslinde de Responsabilidad en Logística y Pago Contra Entrega (COD)</h2>
+                <p>
+                    SynkRD provee flujos automatizados de mensajería para facilitar la confirmación, validación de dirección y aviso de entrega de pedidos.
+                </p>
+                <div class="shield-box">
+                    <h3><i class="fas fa-hand-holding-usd"></i> Alcance Logístico y Financiero</h3>
+                    <p>
+                        <strong>SynkRD NO es una empresa de transporte, mensajería, paquetería ni custodia de valores.</strong> La ejecución material de los envíos, la contratación del personal repartidor, el cobro físico del dinero en efectivo y la absorción de costos por paquetes rechazados o no entregados corresponden enteramente a la tienda y a sus proveedores logísticos externos. SynkRD no asume responsabilidad financiera por pérdidas de inventario o impagos de clientes finales.
+                    </p>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-network-wired"></i> 4. Servicios de Terceros y Disponibilidad de APIs</h2>
+                <p>
+                    El funcionamiento óptimo de SynkRD depende de la interoperabilidad con plataformas externas de terceros, tales como:
+                </p>
+                <ul>
+                    <li><strong>Meta Platforms Inc. / WhatsApp Cloud API:</strong> Disponibilidad del servicio de mensajería, tiempos de entrega y políticas de uso de números telefónicos de WhatsApp.</li>
+                    <li><strong>Shopify Inc.:</strong> Disponibilidad de la API de administración de tiendas y carritos.</li>
+                    <li><strong>Proveedores de Modelos de Lenguaje (LLMs):</strong> Conectividad y latencia de procesamiento de inferencia de IA.</li>
+                </ul>
+                <p>
+                    SynkRD no se hace responsable por interrupciones de servicio, suspensiones de líneas de WhatsApp por infracción de políticas de Meta por parte del usuario, o retrasos derivados de fallos directos en las infraestructuras de dichos terceros.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-ban"></i> 5. Política de Uso Aceptable</h2>
+                <p>El Suscriptor se compromete a no utilizar SynkRD ni Sofía AI para:</p>
+                <ul>
+                    <li>Enviar spam masivo no solicitado a bases de datos que no hayan consentido expresamente el contacto.</li>
+                    <li>Comercializar productos ilícitos, estafas, sustancias prohibidas, armas o contenido fraudulento bajo la legislación de la República Dominicana.</li>
+                    <li>Intentar realizar ingeniería inversa, vulnerar la seguridad del sistema o extraer el código fuente de la plataforma.</li>
+                </ul>
+                <p>SynkRD se reserva el derecho de suspender de forma inmediata y sin derecho a reembolso cualquier cuenta que incurra en violaciones graves de esta política.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-credit-card"></i> 6. Planes, Suscripción y Cancelación</h2>
+                <p>
+                    Los servicios se ofrecen bajo modalidad de suscripción mensual recurrente. Los pagos son procesados de forma segura mediante pasarelas autorizadas.
+                </p>
+                <ul>
+                    <li><strong>Sin Contratos Forzosos:</strong> El Suscriptor puede cancelar su suscripción en cualquier momento desde su panel de control o contactando a soporte antes de su siguiente fecha de corte.</li>
+                    <li><strong>Renovación:</strong> Las suscripciones se renuevan automáticamente salvo cancelación previa.</li>
+                    <li><strong>Reembolsos:</strong> Debido a los costos computacionales inmediatos y activación de servidores dedicados, no se otorgan reembolsos por periodos parciales ya transcurridos, pero el servicio se mantendrá activo hasta el término del ciclo facturado.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-balance-scale"></i> 7. Ley Aplicable y Jurisdicción</h2>
+                <p>
+                    Estos Términos y Condiciones se rigen e interpretan conforme a las leyes de la <strong>República Dominicana</strong>. Cualquier controversia, litigio o reclamación derivada de la interpretación o ejecución de este contrato se someterá a la jurisdicción exclusiva de los tribunales competentes del Distrito Nacional, Santo Domingo.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-headset"></i> 8. Contacto</h2>
+                <p>
+                    Para cualquier notificación legal o aclaración sobre estos términos:
+                </p>
+                <ul>
+                    <li><strong>Email:</strong> <a href="mailto:legal@synkdr.com" style="color:var(--brand-light);">legal@synkdr.com</a></li>
+                    <li><strong>WhatsApp Oficial:</strong> <a href="https://wa.me/18294554783" target="_blank" style="color:var(--brand-light);">+1 (829) 455-4783</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer>
+        <p>&copy; 2026 SynkRD · Todos los derechos reservados.</p>
+    </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sofía Platform — Super Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        platform: {
+                            50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+                            400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+                            800: '#3730a3', 900: '#312e81'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { overscroll-behavior-y: none; }
+        .glass-card {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .bg-mesh {
+            background-color: #0f172a;
+            background-image:
+                radial-gradient(at 40% 20%, rgba(99,102,241,0.15) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, rgba(79,70,229,0.12) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, rgba(129,140,248,0.1) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(67,56,202,0.08) 0px, transparent 50%);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px -5px rgba(99,102,241,0.4);
+        }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+        .shake { animation: shake 0.4s ease-in-out; }
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        .fade-in { animation: fadeInUp 0.5s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-mesh min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div class="w-full max-w-md fade-in">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-platform-500 to-platform-700 mb-4 shadow-lg shadow-platform-500/30">
+                <i class="fas fa-shield-alt text-white text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-white">Sofía Platform</h1>
+            <p class="text-gray-400 text-sm mt-1">Super Admin Console</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="glass-card rounded-2xl shadow-xl p-8">
+            <form id="loginForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                    <div class="relative">
+                        <input type="email" id="email" required
+                            class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-platform-500 focus:ring-2 focus:ring-platform-500/20 outline-none transition text-sm"
+                            placeholder="admin@sofia.ai">
+                        <i class="fas fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                    <div class="relative">
+                        <input type="password" id="password" required
+                            class="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:border-platform-500 focus:ring-2 focus:ring-platform-500/20 outline-none transition text-sm"
+                            placeholder="••••••••">
+                        <i class="fas fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <button type="button" onclick="togglePw()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-platform-500 bg-transparent border-none cursor-pointer">
+                            <i id="pwIcon" class="fas fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="errorBox" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl p-3">
+                    <i class="fas fa-exclamation-circle mr-1"></i>
+                    <span id="errorMsg"></span>
+                </div>
+
+                <button type="submit" id="submitBtn"
+                    class="btn-primary w-full text-white font-semibold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+                    <span id="btnText">Ingresar al Panel</span>
+                    <i id="btnSpinner" class="fas fa-spinner fa-spin hidden"></i>
+                </button>
+            </form>
+
+            <div class="mt-6 pt-5 border-t border-gray-100 text-center">
+                <p class="text-xs text-gray-400">
+                    <i class="fas fa-lock mr-1"></i> Acceso restringido a super administradores
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://votyvfjbrjmcghekaatk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvdHl2ZmpicmptY2doZWthYXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTA3NDksImV4cCI6MjA4Nzk2Njc0OX0.-vo_fUfBzty-mPXn61tv-v8azBcXeL3nF0JBEgYopK0';
+
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Check existing session
+        (async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                // Verify super admin
+                const ok = await verifySuperAdmin(session.access_token);
+                if (ok) window.location.href = '/superadmin';
+            }
+        })();
+
+        async function verifySuperAdmin(token) {
+            try {
+                const r = await fetch('/superadmin/api/overview', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                return r.ok;
+            } catch { return false; }
+        }
+
+        function togglePw() {
+            const pw = document.getElementById('password');
+            const icon = document.getElementById('pwIcon');
+            if (pw.type === 'password') {
+                pw.type = 'text';
+                icon.className = 'fas fa-eye-slash text-sm';
+            } else {
+                pw.type = 'password';
+                icon.className = 'fas fa-eye text-sm';
+            }
+        }
+
+        function showError(msg) {
+            const box = document.getElementById('errorBox');
+            document.getElementById('errorMsg').textContent = msg;
+            box.classList.remove('hidden');
+            box.classList.add('shake');
+            setTimeout(() => box.classList.remove('shake'), 500);
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('btnSpinner');
+
+            btn.disabled = true;
+            btnText.textContent = 'Verificando...';
+            spinner.classList.remove('hidden');
+            document.getElementById('errorBox').classList.add('hidden');
+
+            try {
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+
+                const token = data.session.access_token;
+                const isAdmin = await verifySuperAdmin(token);
+                if (!isAdmin) {
+                    await sb.auth.signOut();
+                    showError('No tienes permisos de super admin.');
+                    return;
+                }
+
+                window.location.href = '/superadmin';
+            } catch (err) {
+                showError(err.message || 'Error de autenticación');
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Ingresar al Panel';
+                spinner.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual env
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MBOS (local memory — don't share)
+.mbos/
+.agent/
+.domai/
+
+# Temp
+.tmp/
+*.log
+
+# Temp patch/hotfix helper scripts (throwaway, not part of the product)
+scripts/_*.sh
+scripts/_*.py
+
+# Heavy media belongs in Storage/CDN, not git
+static/images/
+static/hero-video.mp4
+*.mp4

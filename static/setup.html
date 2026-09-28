@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurar Sofía — Tu Asistente IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .step { display: none; }
+        .step.active { display: block; }
+        .step-dot.completed { background-color: #ec4899; }
+        .step-dot.active { border-color: #ec4899; }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+
+    <div class="max-w-2xl mx-auto px-4 py-12">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <div class="w-16 h-16 bg-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl font-bold shadow-lg">S</div>
+            <h1 class="text-3xl font-bold">Configura tu Sofía</h1>
+            <p class="text-gray-400 mt-2">3 pasos simples para activar tu asistente IA</p>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="flex items-center justify-center gap-4 mb-10">
+            <div class="flex items-center gap-2">
+                <div id="dot-1" class="step-dot active w-8 h-8 rounded-full border-2 border-pink-500 flex items-center justify-center text-sm font-bold">1</div>
+                <span class="text-sm text-gray-400 hidden md:inline">Tienda</span>
+            </div>
+            <div class="w-12 h-px bg-gray-700"></div>
+            <div class="flex items-center gap-2">
+                <div id="dot-2" class="step-dot w-8 h-8 rounded-full border-2 border-gray-600 flex items-center justify-center text-sm font-bold text-gray-500">2</div>
+                <span class="text-sm text-gray-400 hidden md:inline">Personalidad</span>
+            </div>
+            <div class="w-12 h-px bg-gray-700"></div>
+            <div class="flex items-center gap-2">
+                <div id="dot-3" class="step-dot w-8 h-8 rounded-full border-2 border-gray-600 flex items-center justify-center text-sm font-bold text-gray-500">3</div>
+                <span class="text-sm text-gray-400 hidden md:inline">Activar</span>
+            </div>
+        </div>
+
+        <!-- Step 1: Store URL -->
+        <div id="step-1" class="step active">
+            <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+                <h2 class="text-xl font-bold mb-2"><i class="fas fa-store text-pink-500 mr-2"></i>Conecta tu Tienda Shopify</h2>
+                <p class="text-gray-400 text-sm mb-6">Ingresa la URL de tu tienda. Sofía importará tu catálogo automáticamente.</p>
+
+                <label class="text-sm font-bold text-gray-300 block mb-2">URL de tu tienda</label>
+                <div class="flex gap-2">
+                    <input type="text" id="store-url" placeholder="tu-tienda.myshopify.com" 
+                        class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
+                    <button onclick="testStoreConnection()" id="btn-test"
+                        class="bg-pink-500 hover:bg-pink-600 px-6 py-3 rounded-xl font-bold transition-colors">
+                        <i class="fas fa-plug mr-1"></i> Conectar
+                    </button>
+                </div>
+                <p id="store-status" class="text-sm mt-3 hidden"></p>
+
+                <div id="product-preview" class="mt-6 hidden">
+                    <h3 class="text-sm font-bold text-gray-300 mb-2">Productos encontrados:</h3>
+                    <div id="product-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button onclick="goToStep(2)" id="btn-next-1" disabled
+                    class="bg-pink-500 hover:bg-pink-600 disabled:bg-gray-700 disabled:text-gray-500 px-8 py-3 rounded-xl font-bold transition-colors">
+                    Siguiente <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Personality & Policies -->
+        <div id="step-2" class="step">
+            <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800 space-y-5">
+                <h2 class="text-xl font-bold mb-2"><i class="fas fa-magic text-pink-500 mr-2"></i>Personaliza a Sofía</h2>
+                <p class="text-gray-400 text-sm mb-4">Define cómo Sofía interactúa con tus clientes.</p>
+
+                <div>
+                    <label class="text-sm font-bold text-gray-300 block mb-1">Nombre del negocio</label>
+                    <input type="text" id="setup-store-name" placeholder="Mi Tienda RD"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500">
+                </div>
+                <div>
+                    <label class="text-sm font-bold text-gray-300 block mb-1">Tono de voz</label>
+                    <select id="setup-tone" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white">
+                        <option value="casual">Casual y cercano (dominicano)</option>
+                        <option value="professional">Profesional y formal</option>
+                        <option value="fun">Divertido y energético</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm font-bold text-gray-300 block mb-1">Política de envío</label>
+                    <textarea id="setup-shipping" rows="2" placeholder="Envío gratis en compras mayores a RD$2,000..."
+                        class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white resize-none focus:outline-none focus:ring-2 focus:ring-pink-500"></textarea>
+                </div>
+                <div>
+                    <label class="text-sm font-bold text-gray-300 block mb-1">Métodos de pago</label>
+                    <textarea id="setup-payment" rows="2" placeholder="Contra entrega, transferencia bancaria..."
+                        class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white resize-none focus:outline-none focus:ring-2 focus:ring-pink-500"></textarea>
+                </div>
+                <div>
+                    <label class="text-sm font-bold text-gray-300 block mb-1">Política de devoluciones</label>
+                    <textarea id="setup-returns" rows="2" placeholder="10 días para devolver, producto sin usar..."
+                        class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white resize-none focus:outline-none focus:ring-2 focus:ring-pink-500"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-between mt-6">
+                <button onclick="goToStep(1)" class="text-gray-400 hover:text-white px-6 py-3 font-bold">
+                    <i class="fas fa-arrow-left mr-2"></i> Atrás
+                </button>
+                <button onclick="saveSetupAndContinue()" id="btn-next-2"
+                    class="bg-pink-500 hover:bg-pink-600 px-8 py-3 rounded-xl font-bold transition-colors">
+                    Siguiente <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Activate -->
+        <div id="step-3" class="step">
+            <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800 text-center">
+                <div class="text-5xl mb-4">🎉</div>
+                <h2 class="text-2xl font-bold mb-2">¡Sofía está lista!</h2>
+                <p class="text-gray-400 mb-6">Pega este código en tu tienda Shopify para activar el chat widget.</p>
+
+                <div class="bg-gray-800 rounded-xl p-4 text-left font-mono text-sm text-green-400 border border-gray-700 relative">
+                    <button onclick="copyWidgetCode()" class="absolute top-2 right-2 text-gray-500 hover:text-white">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <code id="widget-code">&lt;script src="https://synkdr.com/static/widget.js"&gt;&lt;/script&gt;</code>
+                </div>
+
+                <p class="text-xs text-gray-500 mt-4">Pega esto antes de <code>&lt;/body&gt;</code> en tu tema de Shopify.</p>
+
+                <div class="mt-8 space-y-3">
+                    <a href="/admin" class="block bg-pink-500 hover:bg-pink-600 px-8 py-3 rounded-xl font-bold transition-colors">
+                        <i class="fas fa-rocket mr-2"></i> Ir al Panel de Control
+                    </a>
+                    <a href="/demo" class="block border border-gray-600 hover:border-pink-500 px-8 py-3 rounded-xl font-bold transition-colors text-gray-300 hover:text-white">
+                        <i class="fas fa-comments mr-2"></i> Probar el Chat
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let _storeUrl = '';
+        let _productCount = 0;
+
+        function goToStep(n) {
+            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step-${n}`).classList.add('active');
+
+            for (let i = 1; i <= 3; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                dot.classList.remove('active', 'completed');
+                dot.className = 'step-dot w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold';
+                if (i < n) {
+                    dot.classList.add('completed');
+                    dot.classList.add('border-pink-500', 'text-white');
+                    dot.innerHTML = '<i class="fas fa-check text-xs"></i>';
+                } else if (i === n) {
+                    dot.classList.add('active', 'border-pink-500', 'text-pink-500');
+                    dot.innerText = i;
+                } else {
+                    dot.classList.add('border-gray-600', 'text-gray-500');
+                    dot.innerText = i;
+                }
+            }
+        }
+
+        async function testStoreConnection() {
+            const url = document.getElementById('store-url').value.trim();
+            if (!url) return;
+
+            const btn = document.getElementById('btn-test');
+            const statusEl = document.getElementById('store-status');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            statusEl.classList.remove('hidden');
+            statusEl.className = 'text-sm mt-3 text-yellow-400';
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Conectando...';
+
+            try {
+                const cleanUrl = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+                const res = await fetch(`https://${cleanUrl}/products.json?limit=5`);
+                const data = await res.json();
+                const products = data.products || [];
+
+                if (products.length > 0) {
+                    _storeUrl = cleanUrl;
+                    _productCount = products.length;
+                    statusEl.className = 'text-sm mt-3 text-green-400';
+                    statusEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i> ¡Conectado! ${products.length}+ productos encontrados.`;
+
+                    // Show preview
+                    const previewEl = document.getElementById('product-preview');
+                    const listEl = document.getElementById('product-list');
+                    previewEl.classList.remove('hidden');
+                    listEl.innerHTML = products.map(p =>
+                        `<div class="bg-gray-800 rounded-lg p-2 flex items-center gap-3">
+                            <img src="${p.images?.[0]?.src || ''}" class="w-10 h-10 rounded object-cover bg-gray-700">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold truncate">${p.title}</p>
+                                <p class="text-xs text-gray-400">RD$${parseFloat(p.variants?.[0]?.price || 0).toLocaleString()}</p>
+                            </div>
+                        </div>`
+                    ).join('');
+
+                    document.getElementById('btn-next-1').disabled = false;
+                } else {
+                    statusEl.className = 'text-sm mt-3 text-red-400';
+                    statusEl.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Tienda encontrada pero sin productos públicos.';
+                }
+            } catch (e) {
+                statusEl.className = 'text-sm mt-3 text-red-400';
+                statusEl.innerHTML = '<i class="fas fa-times-circle mr-1"></i> No se pudo conectar. Verifica la URL.';
+            }
+
+            btn.innerHTML = '<i class="fas fa-plug mr-1"></i> Conectar';
+            btn.disabled = false;
+        }
+
+        async function saveSetupAndContinue() {
+            const storeName = document.getElementById('setup-store-name').value.trim();
+            const tone = document.getElementById('setup-tone').value;
+            const shipping = document.getElementById('setup-shipping').value.trim();
+            const payment = document.getElementById('setup-payment').value.trim();
+            const returns = document.getElementById('setup-returns').value.trim();
+
+            // Save all settings via API (no auth required for initial setup)
+            const settings = {
+                store_name: storeName || 'Mi Tienda',
+                store_url: _storeUrl,
+                tone_of_voice: tone,
+                policy_shipping: shipping,
+                policy_payment: payment,
+                policy_returns: returns,
+                setup_completed: 'true',
+            };
+
+            try {
+                await fetch(`${API_BASE}/admin/api/settings/bulk`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ settings })
+                });
+            } catch (e) {
+                console.error('Setup save error:', e);
+            }
+
+            goToStep(3);
+        }
+
+        function copyWidgetCode() {
+            const code = document.getElementById('widget-code').innerText;
+            navigator.clipboard.writeText(code.replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
+            alert('¡Código copiado!');
+        }
+    </script>
+</body>
+</html>

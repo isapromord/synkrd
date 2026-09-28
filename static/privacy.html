@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidad | SynkRD — Sofía AI</title>
+    <meta name="description" content="Política de Privacidad y Protección de Datos de SynkRD y Sofía AI. Cumplimiento con la Ley No. 172-13 de República Dominicana y estándares internacionales.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://synkdr.com/privacy">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --brand: #8B5CF6;
+            --brand-light: #A78BFA;
+            --brand-glow: rgba(139, 92, 246, 0.4);
+            --accent: #EC4899;
+            --bg-dark: #0B0714;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --text: #E8E4F0;
+            --text-dim: rgba(232, 228, 240, 0.65);
+            --border: rgba(139, 92, 246, 0.18);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.7;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* ═══ NAVBAR ═══ */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 18px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            background: rgba(11, 7, 20, 0.85);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .nav-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--brand), var(--accent));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        .nav-title {
+            font-weight: 800;
+            font-size: 18px;
+            color: white;
+        }
+
+        .nav-back {
+            color: var(--brand-light);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .nav-back:hover {
+            color: #FFFFFF;
+        }
+
+        /* ═══ CONTAINER ═══ */
+        .legal-container {
+            max-width: 900px;
+            margin: 60px auto 100px;
+            padding: 0 24px;
+        }
+
+        .legal-header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .legal-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 100px;
+            font-size: 12px;
+            color: var(--brand-light);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 16px;
+        }
+
+        .legal-header h1 {
+            font-size: clamp(2.2rem, 4vw, 3rem);
+            font-weight: 900;
+            margin-bottom: 12px;
+            color: #FFFFFF;
+            letter-spacing: -0.5px;
+        }
+
+        .legal-date {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .legal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 48px 40px;
+        }
+
+        .legal-section {
+            margin-bottom: 36px;
+        }
+
+        .legal-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .legal-section h2 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legal-section h2 i {
+            color: var(--brand-light);
+            font-size: 1.1rem;
+        }
+
+        .legal-section p, .legal-section ul {
+            color: var(--text-dim);
+            font-size: 0.98rem;
+            line-height: 1.8;
+            margin-bottom: 14px;
+        }
+
+        .legal-section ul {
+            padding-left: 24px;
+        }
+
+        .legal-section li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-box {
+            background: rgba(139, 92, 246, 0.08);
+            border-left: 4px solid var(--brand);
+            padding: 18px 22px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .highlight-box p {
+            color: #DDD6FE;
+            margin-bottom: 0;
+            font-size: 0.94rem;
+        }
+
+        /* ═══ FOOTER ═══ */
+        footer {
+            padding: 36px 24px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            background: #08050e;
+        }
+
+        footer p {
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+
+        footer a {
+            color: var(--brand-light);
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .legal-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══ NAVBAR ═══ -->
+    <nav>
+        <a href="/" class="nav-brand">
+            <div class="nav-logo">S</div>
+            <span class="nav-title">SynkRD</span>
+        </a>
+        <a href="/" class="nav-back"><i class="fas fa-arrow-left"></i> Volver al Inicio</a>
+    </nav>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <div class="legal-container">
+        <div class="legal-header">
+            <div class="legal-badge">Marco Legal & Cumplimiento</div>
+            <h1>Política de Privacidad</h1>
+            <p class="legal-date">Última actualización: 15 de Septiembre de 2026 · Versión 2.0</p>
+        </div>
+
+        <div class="legal-content">
+            <div class="legal-section">
+                <h2><i class="fas fa-shield-alt"></i> 1. Declaración de Compromiso y Responsable</h2>
+                <p>
+                    En <strong>SynkRD</strong> (operando bajo la plataforma tecnológica de <em>Sofía AI</em>, con domicilio comercial en Santo Domingo, República Dominicana), nos tomamos con absoluta rigurosidad la confidencialidad, integridad y seguridad de la información de nuestros clientes y de los usuarios finales de las tiendas que utilizan nuestros servicios.
+                </p>
+                <p>
+                    Esta Política de Privacidad describe de manera transparente cómo recolectamos, procesamos, almacenamos y protegemos la información personal en cumplimiento con la <strong>Ley No. 172-13 sobre la Protección Integral de Datos Personales de la República Dominicana</strong> y los estándares de privacidad internacionales (GDPR y regulaciones aplicables de comercio electrónico).
+                </p>
+            </div>
+
+            <div class="highlight-box">
+                <p><strong>🔒 Principio Fundamental:</strong> SynkRD <u>NUNCA</u> vende, alquila, comercializa ni transfiere las bases de datos, historiales de chat ni contactos de clientes a terceros bajo ninguna circunstancia.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-database"></i> 2. Datos que Recopilamos</h2>
+                <p>Para proporcionar los servicios de automatización de ventas, atención al cliente por WhatsApp y sincronización de catálogo, recopilamos únicamente los datos indispensables:</p>
+                <ul>
+                    <li><strong>Datos de la Tienda / Suscriptor:</strong> Nombre del comercio, URL de Shopify, dirección de correo electrónico, teléfono de contacto y credenciales autorizadas de integración vía API.</li>
+                    <li><strong>Datos de Interacciones en el Chat:</strong> Mensajes de texto, consultas sobre productos, preferencias declaradas y datos necesarios para la gestión del pedido (nombre del destinatario, dirección de entrega física, punto de referencia y teléfono).</li>
+                    <li><strong>Notas de Voz y Mensajes Multimedia:</strong> Archivos de audio o imágenes enviadas voluntariamente por el usuario para transcripción o búsqueda visual de productos. Dichos archivos se procesan temporalmente y no se utilizan para entrenamiento de modelos públicos.</li>
+                    <li><strong>Datos Técnicos y Analíticos:</strong> Dirección IP, tipo de navegador y cookies estrictamente necesarias para el correcto funcionamiento del widget de chat web.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-cogs"></i> 3. Finalidad del Tratamiento de los Datos</h2>
+                <p>La información recopilada es utilizada estrictamente para los siguientes propósitos:</p>
+                <ul>
+                    <li>Atender y resolver consultas sobre el catálogo de la tienda de forma automatizada mediante Sofía AI las 24 horas.</li>
+                    <li>Procesar y estructurar solicitudes de pedido y carritos de compra iniciados en el chat.</li>
+                    <li>Ejecutar el <strong>Ciclo de Confirmación y Rastreo en Pago Contra Entrega (COD)</strong>, validando la dirección y disponibilidad del comprador antes del despacho físico.</li>
+                    <li>Enviar notificaciones operativas previamente autorizadas (ej. confirmación de compra, aviso de despacho, reprogramación de entrega o alertas de precio solicitadas).</li>
+                    <li>Proveer métricas analíticas anonimizadas y agregadas al administrador de la tienda.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-microphone-alt"></i> 4. Tratamiento de Inteligencia Artificial y Notas de Voz</h2>
+                <p>
+                    Las conversaciones y notas de voz procesadas por <strong>Sofía AI</strong> se analizan mediante modelos de inteligencia artificial alojados en infraestructuras seguras y encriptadas. 
+                </p>
+                <p>
+                    Los datos conversacionales se utilizan exclusivamente para inferir respuestas contextuales en la sesión activa del cliente. SynkRD no comparte información confidencial ni datos identificables de personas con plataformas públicas de IA para fines comerciales ajenos.
+                </p>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-lock"></i> 5. Seguridad y Almacenamiento de la Información</h2>
+                <p>
+                    Implementamos medidas de seguridad técnicas y organizativas de nivel industrial, incluyendo:
+                </p>
+                <ul>
+                    <li>Transmisión de datos mediante encriptación SSL/TLS de 256 bits en todos los endpoints web y APIs.</li>
+                    <li>Almacenamiento en servidores de alta seguridad con copias de respaldo automatizadas y controles de acceso restringido basados en roles (RBAC).</li>
+                    <li>Aislamiento de datos multitenant para garantizar que los datos de cada tienda se mantengan completamente segregados.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-user-check"></i> 6. Derechos del Titular (Derechos ARCO)</h2>
+                <p>
+                    De acuerdo con la legislación dominicana e internacional, los usuarios y titulares de los datos tienen derecho a ejercer en cualquier momento sus facultades de:
+                </p>
+                <ul>
+                    <li><strong>Acceso:</strong> Solicitar conocer qué datos personales tenemos almacenados.</li>
+                    <li><strong>Rectificación:</strong> Corregir información inexacta o desactualizada.</li>
+                    <li><strong>Cancelación:</strong> Solicitar la eliminación definitiva de su historial de datos cuando hayan dejado de ser necesarios para la relación comercial.</li>
+                    <li><strong>Oposición:</strong> Negarse al tratamiento de sus datos para fines específicos no esenciales.</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-envelope-open-text"></i> 7. Contacto y Consultas de Privacidad</h2>
+                <p>
+                    Para ejercer sus derechos de privacidad, solicitar la eliminación de datos o plantear cualquier duda respecto a esta política, puede comunicarse con nuestro Oficial de Protección de Datos a través de:
+                </p>
+                <ul>
+                    <li><strong>Correo Electrónico:</strong> <a href="mailto:soporte@synkdr.com" style="color:var(--brand-light);">soporte@synkdr.com</a></li>
+                    <li><strong>WhatsApp Oficial de Soporte:</strong> <a href="https://wa.me/18294554783" target="_blank" style="color:var(--brand-light);">+1 (829) 455-4783</a></li>
+                    <li><strong>Ubicación:</strong> Santo Domingo, República Dominicana</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer>
+        <p>&copy; 2026 SynkRD · Sofía AI Platform · Todos los derechos reservados.</p>
+    </footer>
+
+</body>
+
+</html>

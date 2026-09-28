@@ -1,0 +1,13 @@
+client_id = "3b6e0ff1590ae794c7e54b77b2a17b80"
+name = "Sofia Bot"
+application_url = "http://localhost:9999"
+embedded = false
+
+[auth]
+redirect_urls = ["http://localhost:9999/callback"]
+
+[access_scopes]
+scopes = "read_products,read_orders,read_all_orders,write_orders,write_draft_orders,read_inventory,read_shipping,read_customers,write_customers,read_fulfillments,write_fulfillments,read_discounts,write_discounts,read_price_rules,write_price_rules,read_checkouts"
+
+[webhooks]
+api_version = "2026-01"
