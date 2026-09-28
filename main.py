@@ -508,6 +508,9 @@ async def setup_page():
 @app.get("/", tags=["Landing"])
 async def landing_page():
     """Serve the Sofía AI marketing landing page."""
+    root_index = Path("index.html")
+    if root_index.exists():
+        return FileResponse(str(root_index), media_type="text/html")
     landing_v2 = STATIC_DIR / "landing-v2.html"
     landing_file = STATIC_DIR / "landing.html"
     # Prefer v2 if it exists
