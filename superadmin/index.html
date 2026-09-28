@@ -484,19 +484,24 @@
         return token;
     }
 
+    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? ''
+        : 'https://srv806559.hstgr.cloud/sofia-api';
+
     async function api(path, method = 'GET', body = null) {
         const t = await getToken();
         if (!t) return null;
+        const fullUrl = path.startsWith('http') ? path : `${API_BASE}${path}`;
         const opts = { method, headers: { 'Authorization': `Bearer ${t}`, 'Content-Type': 'application/json' } };
         if (body) opts.body = JSON.stringify(body);
-        const r = await fetch(path, opts);
+        const r = await fetch(fullUrl, opts);
         if (r.status === 401 || r.status === 403) {
             // Try refresh
             const { data: { session } } = await sb.auth.refreshSession();
             if (!session) { window.location.href = '/superadmin/login'; return null; }
             token = session.access_token;
             opts.headers['Authorization'] = `Bearer ${token}`;
-            const r2 = await fetch(path, opts);
+            const r2 = await fetch(fullUrl, opts);
             if (!r2.ok) throw new Error(`API ${r2.status}`);
             return r2.json();
         }

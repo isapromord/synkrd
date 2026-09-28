@@ -763,15 +763,19 @@
     initDashboard();
   })();
 
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? ''
+    : 'https://srv806559.hstgr.cloud/sofia-api';
+
   async function fetchAPI(path, opts = {}) {
     const headers = { 'Authorization': `Bearer ${_accessToken}`, 'Content-Type': 'application/json', ...opts.headers };
-    let res = await fetch(path, { ...opts, headers });
+    let res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
     if (res.status === 401) {
       const { data: { session } } = await sbClient.auth.refreshSession();
       if (session) {
         _accessToken = session.access_token;
         headers['Authorization'] = `Bearer ${_accessToken}`;
-        res = await fetch(path, { ...opts, headers });
+        res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
       } else {
         window.location.replace('/login');
         return null;

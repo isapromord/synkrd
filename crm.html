@@ -252,8 +252,13 @@ async function logout() {
   window.location.replace('/login');
 }
 
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? ''
+  : 'https://srv806559.hstgr.cloud/sofia-api';
+
 async function apiFetch(url) {
-  const res = await fetch(url, {
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+  const res = await fetch(fullUrl, {
     headers: { 'Authorization': `Bearer ${_token}` },
   });
   if (res.status === 401) {
@@ -389,7 +394,8 @@ function sortTable(tblId, col) {
 
 // ── CSV export ────────────────────────────────────────────────
 async function exportCSV(url, filename) {
-  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${_token}` } });
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+  const res = await fetch(fullUrl, { headers: { 'Authorization': `Bearer ${_token}` } });
   const blob = await res.blob();
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
