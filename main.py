@@ -2646,6 +2646,129 @@ async def admin_export_wishlist_csv():
 
 
 # ═══════════════════════════════════════════════════════════════
+# MEDIA & IMAGE UPLOAD ENDPOINT (TrendyRD & SynkRD Product Assets)
+# ═══════════════════════════════════════════════════════════════
+import base64
+from fastapi import UploadFile, File
+from fastapi.responses import JSONResponse
+
+MEDIA_PRODUCTS_DIR = Path("/var/www/nexusrd-media/products")
+MEDIA_PRODUCTS_DIR.mkdir(parents=True, exist_ok=True)
+MEDIA_BASE_URL = "https://srv806559.hstgr.cloud/media/products"
+
+ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}
+
+@app.post("/api/upload", tags=["Media"])
+@app.post("/upload", tags=["Media"])
+async def upload_product_media(
+    request: Request,
+    files: Optional[list[UploadFile]] = File(None),
+    file: Optional[UploadFile] = File(None),
+):
+    """
+    Universal multi-image & animated GIF upload endpoint.
+    Accepts:
+      1. Multipart form: files (multiple) or file (single)
+      2. JSON body: { base64: "...", filename: "..." } or { files: [{ base64, filename }] }
+    Stores files untouched in /var/www/nexusrd-media/products/ preserving full GIF animation frames.
+    """
+    uploaded_urls = []
+    content_type = request.headers.get("content-type", "")
+
+    # 1. Handle JSON / Base64 payload
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            items = []
+            if "files" in body and isinstance(body["files"], list):
+                items = body["files"]
+            elif "base64" in body:
+                items = [body]
+
+            for item in items:
+                b64_str = item.get("base64", "")
+                fname = item.get("filename", "image.png")
+                if not b64_str:
+                    continue
+
+                # Strip data URL prefix if present
+                ext = ".png"
+                if "," in b64_str:
+                    header, b64_str = b64_str.split(",", 1)
+                    if "image/gif" in header:
+                        ext = ".gif"
+                    elif "image/webp" in header:
+                        ext = ".webp"
+                    elif "image/jpeg" in header or "image/jpg" in header:
+                        ext = ".jpg"
+                else:
+                    ext = Path(fname).suffix.lower() or ".png"
+
+                clean_base = re.sub(r'[^a-zA-Z0-9_-]', '_', Path(fname).stem)[:40]
+                unique_name = f"{int(datetime.now(timezone.utc).timestamp() * 1000)}_{clean_base}{ext}"
+                target_path = MEDIA_PRODUCTS_DIR / unique_name
+
+                data_bytes = base64.b64decode(b64_str)
+                with open(target_path, "wb") as f_out:
+                    f_out.write(data_bytes)
+
+                uploaded_urls.append(f"{MEDIA_BASE_URL}/{unique_name}")
+
+        except Exception as e:
+            logger.error(f"Error saving base64 upload: {e}")
+            return JSONResponse(status_code=500, content={"error": f"Base64 upload failed: {str(e)}"})
+
+    # 2. Handle Multipart Form files
+    all_files = []
+    if files:
+        all_files.extend(files)
+    if file:
+        all_files.append(file)
+
+    if all_files:
+        for f in all_files:
+            try:
+                original_name = f.filename or "image.png"
+                ext = Path(original_name).suffix.lower()
+                if ext not in ALLOWED_EXTENSIONS:
+                    ext = ".png"
+                
+                clean_base = re.sub(r'[^a-zA-Z0-9_-]', '_', Path(original_name).stem)[:40]
+                unique_name = f"{int(datetime.now(timezone.utc).timestamp() * 1000)}_{clean_base}{ext}"
+                target_path = MEDIA_PRODUCTS_DIR / unique_name
+
+                content = await f.read()
+                with open(target_path, "wb") as f_out:
+                    f_out.write(content)
+
+                uploaded_urls.append(f"{MEDIA_BASE_URL}/{unique_name}")
+            except Exception as e:
+                logger.error(f"Error saving uploaded file {f.filename}: {e}")
+
+    if not uploaded_urls:
+        return JSONResponse(status_code=400, content={"error": "No valid files received"})
+
+    response = JSONResponse(
+        content={
+            "url": uploaded_urls[0],
+            "urls": uploaded_urls,
+            "count": len(uploaded_urls),
+        }
+    )
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
+
+@app.options("/api/upload", tags=["Media"])
+@app.options("/upload", tags=["Media"])
+async def upload_options():
+    res = JSONResponse(content={"status": "ok"})
+    res.headers["Access-Control-Allow-Origin"] = "*"
+    res.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    res.headers["Access-Control-Allow-Headers"] = "*"
+    return res
+
+
+# ═══════════════════════════════════════════════════════════════
 # ENTRY POINT
 # ═══════════════════════════════════════════════════════════════
 
