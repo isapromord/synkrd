@@ -8,12 +8,12 @@
     <!-- ═══ MASTER SEO METATAGS ═══ -->
     <title>SynkRD — E-Commerce con IA, Tiendas de Alta Conversión y Bot WhatsApp en RD</title>
     <meta name="description"
-        content="SynkRD potencia tu tienda Shopify con Sofía AI: asistente de ventas 24/7 por WhatsApp, catálogo sincronizado, notas de voz y reducción drástica de devoluciones en Pago Contra Entrega (COD).">
+        content="SynkRD potencia tu tienda online con Sofía AI: asistente de ventas 24/7 por WhatsApp, catálogo sincronizado, notas de voz y reducción drástica de devoluciones en Pago Contra Entrega (COD) en República Dominicana.">
     <meta name="keywords"
-        content="SynkRD, Sofía AI, chatbot whatsapp shopify republica dominicana, chatbot ia ventas whatsapp, automatizacion pago contra entrega cod, tiendas shopify republica dominicana, ecommerce ia dominicana, shrine theme shopify, recuperacion carritos abandonados whatsapp, checkout whatsapp dominicana">
+        content="SynkRD, Sofía AI, chatbot whatsapp republica dominicana, bot ia ventas whatsapp, automatizacion pago contra entrega cod, tiendas online republica dominicana, ecommerce ia dominicana, apex cod template, recuperacion carritos whatsapp, checkout contra entrega">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="author" content="SynkRD">
-    <link rel="canonical" href="https://synkdr.com/">
+    <link rel="canonical" href="https://synkrd.github.io/">
     
     <!-- Geo Tags for Dominican Republic & LatAm Optimization -->
     <meta name="geo.region" content="DO">
@@ -24,21 +24,21 @@
 
     <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://synkdr.com/">
+    <meta property="og:url" content="https://synkrd.github.io/">
     <meta property="og:title" content="SynkRD — E-Commerce con IA y Automatización de Ventas WhatsApp">
     <meta property="og:description"
-        content="Multiplica tus ventas y reduce cancelaciones de entrega en tu tienda online con el asistente inteligente de Sofía AI y SynkRD.">
-    <meta property="og:image" content="https://synkdr.com/static/og-preview.png">
+        content="Multiplica tus ventas y reduce cancelaciones de entrega en tu tienda online con el asistente inteligente de Sofía AI y SynkRD en República Dominicana.">
+    <meta property="og:image" content="https://synkrd.github.io/static/og-preview.png">
     <meta property="og:site_name" content="SynkRD">
     <meta property="og:locale" content="es_DO">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://synkdr.com/">
-    <meta name="twitter:title" content="SynkRD — E-Commerce con IA y Bot WhatsApp para Shopify">
+    <meta name="twitter:url" content="https://synkrd.github.io/">
+    <meta name="twitter:title" content="SynkRD — E-Commerce con IA y Bot WhatsApp en RD">
     <meta name="twitter:description"
-        content="Sofía AI: El asistente de ventas que atiende tu tienda Shopify 24/7 en WhatsApp, envía notas de voz y optimiza tus pedidos contra entrega.">
-    <meta name="twitter:image" content="https://synkdr.com/static/og-preview.png">
+        content="Sofía AI: El asistente de ventas que atiende tu tienda 24/7 en WhatsApp, envía notas de voz y optimiza tus pedidos contra entrega.">
+    <meta name="twitter:image" content="https://synkrd.github.io/static/og-preview.png">
 
     <!-- JSON-LD Structured Data (Google Schema) -->
     <script type="application/ld+json">
@@ -47,14 +47,14 @@
       "@graph": [
         {
           "@type": "SoftwareApplication",
-          "@id": "https://synkdr.com/#software",
+          "@id": "https://synkrd.github.io/#software",
           "name": "SynkRD - Sofía AI E-Commerce Suite",
           "applicationCategory": "BusinessApplication",
-          "operatingSystem": "Web, WhatsApp, Shopify",
-          "description": "Plataforma de Inteligencia Artificial para automatización de ventas en tiendas Shopify, atención al cliente 24/7 por WhatsApp y optimización del ciclo de Pago Contra Entrega.",
+          "operatingSystem": "Web, WhatsApp",
+          "description": "Plataforma de Inteligencia Artificial para automatización de ventas en tiendas online, atención al cliente 24/7 por WhatsApp y optimización del ciclo de Pago Contra Entrega en República Dominicana.",
           "offers": {
             "@type": "Offer",
-            "price": "29.00",
+            "price": "15.00",
             "priceCurrency": "USD"
           },
           "aggregateRating": {
@@ -65,10 +65,10 @@
         },
         {
           "@type": "Organization",
-          "@id": "https://synkdr.com/#organization",
+          "@id": "https://synkrd.github.io/#organization",
           "name": "SynkRD",
-          "url": "https://synkdr.com",
-          "logo": "https://synkdr.com/static/logo.png",
+          "url": "https://synkrd.github.io",
+          "logo": "https://synkrd.github.io/static/logo.png",
           "contactPoint": {
             "@type": "ContactPoint",
             "telephone": "+1-829-455-4783",
@@ -1078,32 +1078,130 @@
             transform: translateY(0);
         }
 
-        /* ═══ MOBILE ═══ */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
+        /* ═══ MOBILE RESPONSIVE STANDARDS (iOS & WCAG AA) ═══ */
+        .mobile-menu-btn {
+            display: none;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mobile-menu-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        @keyframes slideDownDrawer {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .mobile-menu-btn {
+                display: flex !important;
             }
 
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 72px;
+                left: 0;
+                right: 0;
+                background: rgba(11, 7, 20, 0.97);
+                backdrop-filter: blur(25px);
+                -webkit-backdrop-filter: blur(25px);
+                flex-direction: column;
+                padding: 24px 20px;
+                gap: 14px;
+                border-bottom: 1px solid var(--border);
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.85);
+                max-height: calc(100vh - 72px);
+                overflow-y: auto;
+                z-index: 999;
+            }
+
+            .nav-links.active {
+                display: flex !important;
+                animation: slideDownDrawer 0.25s ease-out;
+            }
+
+            .nav-links a {
+                font-size: 16px !important; /* Prevents auto-zoom on iOS */
+                padding: 12px 14px;
+                border-radius: 10px;
+                width: 100%;
+                text-align: left;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .nav-links a:hover, .nav-links a:active {
+                background: rgba(255, 255, 255, 0.06);
+            }
+
+            .nav-login, .nav-cta, .nav-dashboard-link {
+                justify-content: center;
+                text-align: center;
+            }
+
+            /* Hero Mobile Typography & Layout */
             .hero {
-                height: 100vh;
                 min-height: 580px;
+                height: 100vh;
+                padding-bottom: 30px;
+            }
+
+            .hero h1 {
+                font-size: clamp(1.85rem, 7vw, 2.7rem) !important;
+                line-height: 1.2 !important;
+                letter-spacing: -0.5px !important;
+                margin-bottom: 14px;
             }
 
             .hero-content {
-                padding: 0 20px 32px;
+                padding: 0 16px 28px;
             }
 
             .hero-content p {
-                font-size: 0.95rem;
+                font-size: 15px !important;
+                line-height: 1.55;
+                margin-bottom: 22px;
             }
 
             .hero-actions {
                 flex-direction: column;
-                align-items: center;
+                width: 100%;
+                gap: 12px;
+            }
+
+            .hero-actions .btn-primary,
+            .hero-actions .btn-secondary,
+            .hero-actions .btn-whatsapp {
+                width: 100%;
+                justify-content: center;
+                min-height: 48px; /* Standard 48px touch target */
+                font-size: 16px;
             }
 
             .stats-strip {
-                gap: 32px;
+                gap: 24px;
+                flex-wrap: wrap;
+                padding: 30px 16px;
             }
 
             .step {
@@ -1111,20 +1209,9 @@
                 text-align: center;
                 align-items: center;
             }
-        }
 
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        @media (max-width: 768px) {
-            .mobile-menu-btn {
-                display: block;
+            .pricing-cards {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -1138,18 +1225,18 @@
             <div class="nav-logo">S</div>
             <span class="nav-title">SynkRD <span>Sofía AI</span></span>
         </a>
-        <div class="nav-links">
+        <div class="nav-links" id="mainNavLinks">
             <a href="#features">Funciones</a>
             <a href="#cod">Anti-Devoluciones COD</a>
+            <a href="#roi-calc">Calculadora ROI</a>
             <a href="#themes">Temas</a>
-            <a href="#how">Cómo Funciona</a>
             <a href="#pricing">Precios</a>
             <a href="#faq">FAQ</a>
+            <a href="static/admin.html" class="nav-dashboard-link" style="color:#34D399; font-weight:700;"><i class="fas fa-chart-line"></i> Panel Tienda</a>
             <a href="static/login.html" class="nav-login"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a>
-            <a href="/login#signup" class="nav-cta"><i class="fas fa-user-plus"></i> Crear Cuenta</a>
+            <a href="static/setup.html" class="nav-cta"><i class="fas fa-rocket"></i> Crear Tienda</a>
         </div>
-        <button class="mobile-menu-btn" aria-label="Abrir menú"
-            onclick="document.querySelector('.nav-links').style.display = document.querySelector('.nav-links').style.display === 'flex' ? 'none' : 'flex'">
+        <button class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Abrir menú">
             <i class="fas fa-bars"></i>
         </button>
     </nav>
@@ -1203,6 +1290,20 @@
         </div>
     </section>
 
+    <!-- ═══ DOMINICAN ECOSYSTEM & COURIERS ═══ -->
+    <div style="padding: 22px 20px; background: rgba(255,255,255,0.02); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); text-align: center;">
+        <div style="max-width: 1050px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px 32px; font-size: 14px; font-weight: 700; color: var(--text-dim);">
+            <span style="color: white; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-truck-moving" style="color: #10B981;"></i> Couriers Compatibles en RD:
+            </span>
+            <span style="display:inline-flex; align-items:center; gap:6px;"><i class="fas fa-box" style="color:#f59e0b"></i> Caribe Pack</span>
+            <span style="display:inline-flex; align-items:center; gap:6px;"><i class="fas fa-shipping-fast" style="color:#3b82f6"></i> BM Cargo</span>
+            <span style="display:inline-flex; align-items:center; gap:6px;"><i class="fas fa-bolt" style="color:#ef4444"></i> Metro Pac</span>
+            <span style="display:inline-flex; align-items:center; gap:6px;"><i class="fas fa-envelope-open-text" style="color:#8b5cf6"></i> Vimenpaq</span>
+            <span style="display:inline-flex; align-items:center; gap:6px;"><i class="fas fa-motorcycle" style="color:#10b981"></i> Mensajería Privada (Santo Domingo & Santiago)</span>
+        </div>
+    </div>
+
     <!-- ═══ COD LIFECYCLE (ANTI-DEVOLUCIONES) ═══ -->
     <section class="cod-section" id="cod">
         <div class="container">
@@ -1235,6 +1336,80 @@
                     <div class="cod-step-badge">FASE 4</div>
                     <h3>Reprogramación sin Fricción</h3>
                     <p>Si el cliente no se encuentra disponible, Sofía le permite reagendar el día y la hora de entrega en el chat automáticamente, salvando el pedido.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ COD ROI CALCULATOR SECTION ═══ -->
+    <section class="roi-calc-section" id="roi-calc" style="padding: 70px 24px; background: linear-gradient(180deg, var(--bg-dark) 0%, #0d131f 100%); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+        <div class="container" style="max-width: 900px; margin: 0 auto; text-align: center;">
+            <div class="section-badge animate-on-scroll" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.35);">
+                <i class="fas fa-calculator"></i> Calculadora de Ahorro Real en RD
+            </div>
+            <h2 class="animate-on-scroll" style="font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900; margin: 14px 0; color: white;">
+                ¿Cuánto Dinero Pierdes Hoy en Devoluciones COD?
+            </h2>
+            <p class="animate-on-scroll" style="color: var(--text-dim); max-width: 680px; margin: 0 auto 36px; font-size: 16px;">
+                En República Dominicana, cada paquete devuelto le cuesta a la tienda un promedio de <strong>RD$ 300</strong> entre mensajería ida y vuelta. Desliza para ver cuánto dinero salvas cada mes con la confirmación inteligente de SynkRD:
+            </p>
+
+            <div class="animate-on-scroll" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 24px; padding: 32px; backdrop-filter: blur(16px); box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: left;">
+                
+                <!-- Sliders Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; margin-bottom: 32px;">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <label style="font-weight: 700; font-size: 15px; color: white;">Envíos mensuales (Pago al Recibir):</label>
+                            <span id="ordersCountDisplay" style="font-size: 18px; font-weight: 900; color: #34d399; background: rgba(16, 185, 129, 0.12); padding: 4px 12px; border-radius: 8px;">250 pedidos</span>
+                        </div>
+                        <input type="range" id="ordersRange" min="50" max="1500" step="25" value="250" oninput="updateRoiCalc()" style="width: 100%; accent-color: #10B981; cursor: pointer; height: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); margin-top: 6px;">
+                            <span>50 pedidos</span>
+                            <span>500</span>
+                            <span>1,500+</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <label style="font-weight: 700; font-size: 15px; color: white;">Tasa de devolución actual (promedio en RD):</label>
+                            <span id="rateDisplay" style="font-size: 18px; font-weight: 900; color: #f87171; background: rgba(239, 68, 68, 0.12); padding: 4px 12px; border-radius: 8px;">22%</span>
+                        </div>
+                        <input type="range" id="rateRange" min="10" max="45" step="1" value="22" oninput="updateRoiCalc()" style="width: 100%; accent-color: #ef4444; cursor: pointer; height: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); margin-top: 6px;">
+                            <span>10% (Bajo)</span>
+                            <span>22% (Típico)</span>
+                            <span>45% (Crítico)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Results Bento -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px;">
+                    <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 16px; padding: 20px; text-align: center;">
+                        <div style="font-size: 13px; font-weight: 700; color: #f87171; text-transform: uppercase; margin-bottom: 6px;">Pérdida Actual en Fletes</div>
+                        <div id="lossAmount" style="font-size: 28px; font-weight: 900; color: #fca5a5;">RD$ 16,500</div>
+                        <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">dinero botado cada mes</div>
+                    </div>
+
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 20px rgba(16,185,129,0.15);">
+                        <div style="font-size: 13px; font-weight: 700; color: #34d399; text-transform: uppercase; margin-bottom: 6px;">🛡️ Dinero Salvado con SynkRD</div>
+                        <div id="savedAmount" style="font-size: 32px; font-weight: 900; color: #10b981;">RD$ 11,550</div>
+                        <div style="font-size: 12px; color: #a7f3d0; margin-top: 4px;">ganancia neta directa recuperada</div>
+                    </div>
+
+                    <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 16px; padding: 20px; text-align: center;">
+                        <div style="font-size: 13px; font-weight: 700; color: var(--brand-light); text-transform: uppercase; margin-bottom: 6px;">Retorno sobre tu Plan</div>
+                        <div id="roiMultiplier" style="font-size: 28px; font-weight: 900; color: #c4b5fd;">13x ROI</div>
+                        <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">tu plan de $15 se paga solo</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 26px; text-align: center;">
+                    <a href="#pricing" class="btn-primary" style="background: linear-gradient(135deg, #10B981, #059669); box-shadow: 0 8px 30px rgba(16, 185, 129, 0.35); font-size: 16px; min-height: 48px; padding: 14px 28px;">
+                        <i class="fas fa-shield-alt"></i> Activar Protección COD Desde $15/mes
+                    </a>
                 </div>
             </div>
         </div>
@@ -1575,21 +1750,33 @@
 
     <!-- ═══ FOOTER ═══ -->
     <footer>
+        <!-- Direct Dashboards Access Bar -->
+        <div style="margin: 0 auto 24px; padding: 14px 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; display: inline-flex; gap: 16px 24px; flex-wrap: wrap; justify-content: center; align-items: center; max-width: 900px;">
+            <span style="font-size: 12px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-th-large" style="color: var(--brand-light);"></i> Acceso a Plataforma:
+            </span>
+            <a href="static/admin.html" style="font-size: 14px; font-weight: 700; color: #34D399; text-decoration: none;"><i class="fas fa-chart-line"></i> Panel de Tienda</a>
+            <a href="static/login.html" style="font-size: 14px; font-weight: 600; color: var(--brand-light); text-decoration: none;"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a>
+            <a href="static/setup.html" style="font-size: 14px; font-weight: 700; color: #F59E0B; text-decoration: none;"><i class="fas fa-rocket"></i> Setup Nueva Tienda</a>
+            <a href="static/crm.html" style="font-size: 14px; font-weight: 600; color: #60A5FA; text-decoration: none;"><i class="fas fa-comments"></i> CRM WhatsApp</a>
+            <a href="static/superadmin.html" style="font-size: 14px; font-weight: 600; color: #EC4899; text-decoration: none;"><i class="fas fa-user-shield"></i> Super Admin</a>
+        </div>
+
         <div class="footer-links">
             <a href="#features">Funciones</a>
             <a href="#cod">Anti-Devoluciones COD</a>
+            <a href="#roi-calc">Calculadora ROI</a>
             <a href="#themes">Temas</a>
             <a href="#pricing">Precios</a>
             <a href="#faq">FAQ</a>
             <a href="static/privacy.html">Política de Privacidad</a>
             <a href="static/terms.html">Términos y Condiciones</a>
             <a href="https://wa.me/18294554783" target="_blank">Contacto Oficial</a>
-            <a href="static/login.html">Acceso Clientes</a>
         </div>
         <p style="margin-bottom: 8px; font-size: 12px; color: rgba(232, 228, 240, 0.4);">
-            SynkRD es una plataforma SaaS de asistencia comercial con Inteligencia Artificial. Cumplimiento con la Ley No. 172-13 de Protección de Datos Personales (República Dominicana).
+            SynkRD es una plataforma SaaS de comercio electrónico y asistencia con Inteligencia Artificial. Cumplimiento con la Ley No. 172-13 de Protección de Datos Personales (República Dominicana).
         </p>
-        <p>&copy; 2026 <a href="https://synkdr.com" target="_blank">SynkRD</a> · Sofía AI Engine v2 · Santo Domingo, República Dominicana · Hecho con 💜</p>
+        <p>&copy; 2026 <a href="https://synkrd.github.io/" target="_blank">SynkRD</a> · Sofía AI Engine v2 · Santo Domingo, República Dominicana · Hecho con 💜</p>
     </footer>
 
     <!-- ═══ CHAT WIDGET (Live Demo) ═══ -->
@@ -1736,6 +1923,72 @@
 
         // Load pricing after observer is defined
         loadPricing();
+
+        // ═══ ROI CALCULATOR LOGIC ═══
+        function updateRoiCalc() {
+            const ordersInput = document.getElementById('ordersRange');
+            const rateInput = document.getElementById('rateRange');
+            if (!ordersInput || !rateInput) return;
+
+            const orders = parseInt(ordersInput.value, 10);
+            const rate = parseInt(rateInput.value, 10);
+            
+            document.getElementById('ordersCountDisplay').textContent = `${orders.toLocaleString()} pedidos`;
+            document.getElementById('rateDisplay').textContent = `${rate}%`;
+            
+            // Average return cost in RD is RD$ 300 per failed delivery
+            const failedDeliveries = Math.round(orders * (rate / 100));
+            const lossRd = failedDeliveries * 300;
+            
+            // SynkRD reduces failed deliveries by ~70%
+            const savedDeliveries = Math.round(failedDeliveries * 0.70);
+            const savedRd = savedDeliveries * 300;
+            
+            // Plan $15 is ~RD$ 900
+            const planCostRd = 900;
+            const roi = Math.max(1, Math.round(savedRd / planCostRd));
+            
+            document.getElementById('lossAmount').textContent = `RD$ ${lossRd.toLocaleString()}`;
+            document.getElementById('savedAmount').textContent = `RD$ ${savedRd.toLocaleString()}`;
+            document.getElementById('roiMultiplier').textContent = `${roi}x ROI`;
+        }
+
+        // Initialize ROI Calculator
+        updateRoiCalc();
+
+        // ═══ MOBILE MENU TOGGLE ═══
+        const mobileToggleBtn = document.getElementById('mobileMenuToggle');
+        const mainNavLinks = document.getElementById('mainNavLinks');
+        if (mobileToggleBtn && mainNavLinks) {
+            mobileToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mainNavLinks.classList.toggle('active');
+                const icon = mobileToggleBtn.querySelector('i');
+                if (mainNavLinks.classList.contains('active')) {
+                    icon.className = 'fas fa-times';
+                } else {
+                    icon.className = 'fas fa-bars';
+                }
+            });
+
+            // Close drawer when clicking any link
+            mainNavLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mainNavLinks.classList.remove('active');
+                    const icon = mobileToggleBtn.querySelector('i');
+                    if (icon) icon.className = 'fas fa-bars';
+                });
+            });
+
+            // Close drawer when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!mainNavLinks.contains(e.target) && !mobileToggleBtn.contains(e.target)) {
+                    mainNavLinks.classList.remove('active');
+                    const icon = mobileToggleBtn.querySelector('i');
+                    if (icon) icon.className = 'fas fa-bars';
+                }
+            });
+        }
     </script>
 
 </body>
