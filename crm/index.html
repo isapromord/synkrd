@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Sofía CRM — SynkDR</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="static/favicon.png">
+  <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+  <link rel="shortcut icon" href="static/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="static/apple-touch-icon.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -132,8 +136,8 @@
 <!-- ── TOPBAR ── -->
 <header class="topbar">
   <div class="topbar-left">
-    <div class="topbar-logo">Sofía <span>Admin</span></div>
-    <span class="topbar-badge">CRM</span>
+    <img src="images/synkrd-logo.png" onerror="this.src='/static/images/synkrd-logo.png'; this.onerror=function(){this.src='../static/images/synkrd-logo.png';};" alt="SynkRD" style="height: 30px; width: auto; object-fit: contain;">
+    <span class="topbar-badge" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; border-radius: 6px; padding: 2px 8px; font-weight: 600; font-size: 11px;">CRM</span>
   </div>
   <div class="topbar-right">
     <button class="btn-print" onclick="window.print()">🖨 Imprimir</button>
