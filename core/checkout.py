@@ -265,7 +265,7 @@ CONFIRM_PATTERNS = [
 
 CANCEL_PATTERNS = [
     r"^(no|cancel|nah|déjalo|dejalo|olvídalo|olvidalo)\b",
-    r"\b(no quiero|cambi[eé] de opinión|mejor no|otro día|otro dia)\b",
+    r"\b(no quiero|cambi[eé] de opinión|mejor no|otro día|otro dia|fue un error|error|cancelar|cancela)\b",
 ]
 
 
