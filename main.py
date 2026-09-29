@@ -38,6 +38,7 @@ from bots.sofia.persona import SYSTEM_PROMPT, GREETINGS, get_system_prompt
 from knowledge.scraper import fetch_all_products, build_product_context, search_products, build_search_context
 from knowledge.upsells import fetch_upsell_context
 from channels.whatsapp import WhatsAppChannel
+from channels.waha import WAHAChannel
 from core.checkout import (
     CheckoutSession, CheckoutStep,
     find_product_in_catalog, pick_variant, format_variant_options,
@@ -162,16 +163,27 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"⚠️ ReleaseIt upsell load failed (non-fatal): {e}")
 
-    # Initialize WhatsApp channel
-    if settings.channels.ycloud_api_key:
+    # Initialize WhatsApp channel — WAHA preferred (direct, $0 cost), YCloud as fallback
+    waha_base = os.getenv("WAHA_BASE_URL", "https://flowbot.trendygtm.com")
+    waha_key = os.getenv("WAHA_API_KEY", "alveare_waha_secret_369")
+    waha_session = os.getenv("WAHA_SESSION", "sofia")
+
+    if waha_base and waha_key:
+        _whatsapp = WAHAChannel(
+            base_url=waha_base,
+            api_key=waha_key,
+            session=waha_session,
+        )
+        logger.info(f"📱 WhatsApp channel initialized via WAHA: {waha_base} [session: {waha_session}]")
+    elif settings.channels.ycloud_api_key:
         _whatsapp = WhatsAppChannel(
             api_key=settings.channels.ycloud_api_key,
             from_number=settings.channels.whatsapp_from_number,
             webhook_secret=settings.channels.ycloud_webhook_secret,
         )
-        logger.info(f"📱 WhatsApp channel initialized: {settings.channels.whatsapp_from_number}")
+        logger.info(f"📱 WhatsApp channel initialized via YCloud: {settings.channels.whatsapp_from_number}")
     else:
-        logger.warning("⚠️ No YCloud API key — WhatsApp disabled")
+        logger.warning("⚠️ No WAHA or YCloud API key — WhatsApp disabled")
 
     # Initialize notification sender
     _notifier = NotificationSender(
