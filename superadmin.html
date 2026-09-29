@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sofía Platform — Super Admin Dashboard</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="static/favicon.png">
+    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+    <link rel="shortcut icon" href="static/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="static/apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -49,15 +53,16 @@
     <aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white z-40 sidebar flex flex-col">
         <!-- Logo -->
         <div class="p-5 border-b border-slate-700/50">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-platform-500 to-platform-700 flex items-center justify-center shadow-lg shadow-platform-500/20">
-                    <i class="fas fa-shield-alt text-sm text-white"></i>
-                </div>
+            <a href="superadmin.html" class="flex items-center gap-3 no-underline">
+                <img src="static/images/synkrd-icon.png" alt="SynkRD" class="w-9 h-9 object-contain drop-shadow">
                 <div>
-                    <div class="font-bold text-sm">Sofía Platform</div>
-                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Super Admin</div>
+                    <div class="font-bold text-sm tracking-tight text-white flex items-center gap-1.5">
+                        <span>SynkRD</span>
+                        <span class="text-[10px] bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">Sofía</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Super Admin</div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- Nav -->

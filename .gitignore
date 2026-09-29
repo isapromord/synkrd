@@ -42,6 +42,8 @@ scripts/_*.sh
 scripts/_*.py
 
 # Heavy media belongs in Storage/CDN, not git
-static/images/
+static/images/*
+!static/images/synkrd-*.png
 static/hero-video.mp4
 *.mp4
+
