@@ -301,7 +301,7 @@ def build_product_confirm_message(product_name: str, variant_title: str, price: 
         f"📦 {product_name}{variant_info}{qty_info}\n"
         f"💰 RD${total:,.0f} — Pagas al recibirlo\n\n"
         f"¿A qué dirección te lo envío? 📍\n"
-        f"(Calle, número, sector, ciudad — o envíame tu ubicación actual con el clip 📎 de WhatsApp para que el mensajero llegue directo)"
+        f"(Calle, número, sector, ciudad — y para asegurar la entrega de tu orden, envíame tu ubicación actual con el clip 📎 de WhatsApp para que el chofer llegue directo a tu puerta 🛵)"
     )
 
 
