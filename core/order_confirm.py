@@ -159,14 +159,15 @@ def extract_order_details(payload: dict) -> Optional[dict]:
 def build_confirmation_message(
     details: dict,
     bot_name: str = "Sofía",
-    store_name: str = "la tienda",
-    delivery_days: str = "4-7",
+    store_name: str = "TrendyRD",
+    delivery_days: str = "24 a 48 horas",
 ) -> str:
     """
     Build the proactive WhatsApp confirmation message.
 
     For COD orders → includes the anti-rejection ask (confirm someone will
-    receive it). For prepaid orders → a lighter thank-you + delivery window.
+    receive it, ask for cash change, and ask for location pin).
+    For prepaid orders → a lighter thank-you + delivery window.
     """
     name = details.get("first_name") or ""
     greeting_name = f" {name}" if name else ""
@@ -179,13 +180,14 @@ def build_confirmation_message(
     if details.get("is_cod"):
         return (
             f"¡Hola{greeting_name}! 👋 Soy {bot_name} de {store_name}.\n\n"
-            f"¡Recibimos tu pedido! 🎉\n"
-            f"🧾 Orden: {order_name}\n"
-            f"📦 {items_str}\n"
-            f"💰 {currency_sym}{total:,.0f} — Pagas al recibirlo 📲\n\n"
-            f"El mensajero pasa en {delivery_days} días laborables 🛵\n"
-            f"Para asegurar la entrega, ¿me confirmas que habrá alguien "
-            f"en la dirección para recibirlo? ✅"
+            f"¡Recibimos tu pedido con éxito! 🎉\n"
+            f"🧾 *Orden:* #{order_name.lstrip('#')}\n"
+            f"📦 *Producto:* {items_str}\n"
+            f"💰 *Total a pagar al recibir:* {currency_sym}{total:,.0f} en efectivo\n\n"
+            f"🛵 *Tiempo de entrega:* {delivery_days} laborables.\n"
+            f"📍 *Tip:* Para que el chofer llegue directo a tu puerta, envíame tu ubicación con el clip 📎 de WhatsApp.\n\n"
+            f"💵 ¿Pagarás con el monto exacto o necesitarás devuelta?\n\n"
+            f"Para continuar procesando tu envío, por favor responde: *SI*, *NO* o *FUE UN ERROR*."
         )
 
     # Prepaid order — already paid
@@ -270,8 +272,10 @@ def _o(order: dict) -> str:
 
 def reply_confirm_ack(order: dict) -> str:
     return (
-        f"¡Perfecto {_n(order)}! 🙌 Tu pedido {_o(order)} queda confirmado. "
-        f"Te aviso cuando salga en camino. 📦"
+        f"¡Excelente {_n(order)}! 🎉 Tu pedido {_o(order)} ha sido confirmado y pasa ahora mismo a nuestra mesa de empaque.\n\n"
+        f"📦 *Tiempo estimado de entrega:* 24 a 48 horas laborables.\n"
+        f"📍 *Tip importante:* Para que el chofer llegue directo a tu puerta sin tener que llamarte varias veces, toca el clip 📎 y compártenos tu Ubicación actual.\n\n"
+        f"¡Te avisaremos en cuanto tu paquete salga en ruta! 🚚💨"
     )
 
 
