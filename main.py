@@ -426,10 +426,21 @@ STATIC_DIR = Path(__file__).parent / "static"
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-# CORS for web chat widget
+# CORS for admin dashboards and web chat widget
+allowed_origins = [
+    "https://synkrd.github.io",
+    "https://synkrd.com",
+    "https://trendyrd.com",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://localhost:8002",
+]
+if hasattr(settings, "channels") and hasattr(settings.channels, "webchat_cors_origins") and settings.channels.webchat_cors_origins:
+    allowed_origins.extend([o.strip() for o in settings.channels.webchat_cors_origins.split(",") if o.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.channels.webchat_cors_origins.split(","),
+    allow_origins=list(set(allowed_origins)),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
