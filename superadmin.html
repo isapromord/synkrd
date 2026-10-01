@@ -471,6 +471,19 @@ curl -X POST "https://www.trendyrd.com/api/fulfillment/inventory/sync" \<br>
                         <input type="text" id="ct_owner" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="John Doe">
                     </div>
                 </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-medium text-gray-600">Initial Temporary Password</label>
+                        <button type="button" onclick="generateRandomPassword('ct_password')" class="text-xs text-platform-600 hover:text-platform-800 font-medium flex items-center gap-1">
+                            <i class="fas fa-dice"></i> Generate Random
+                        </button>
+                    </div>
+                    <input type="text" id="ct_password" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none font-mono" placeholder="e.g. Synk-2026-X9a!">
+                    <p class="text-[11px] text-amber-700 bg-amber-50 rounded p-2 mt-1 border border-amber-200 flex items-start gap-1.5">
+                        <i class="fas fa-shield-alt mt-0.5 text-amber-600 flex-shrink-0"></i>
+                        <span><strong>Forced First-Login Password Change:</strong> When the merchant logs in with this temporary password, the platform will require them to create their own secure password before accessing the store admin.</span>
+                    </p>
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Bot Name</label>
@@ -518,6 +531,70 @@ curl -X POST "https://www.trendyrd.com/api/fulfillment/inventory/sync" \<br>
             </div>
             <div id="detailContent" class="p-5">
                 <div class="text-center text-sm text-gray-400 py-8">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ RESET PASSWORD MODAL ═══ -->
+    <div id="resetPasswordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden slide-up">
+            <div class="flex items-center justify-between p-5 border-b border-gray-100 bg-slate-900 text-white">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm">Credentials & Password Reset</h3>
+                        <p class="text-[11px] text-gray-400 font-medium" id="rpm_tenant_name">Tenant</p>
+                    </div>
+                </div>
+                <button onclick="closeResetPasswordModal()" class="text-gray-400 hover:text-white transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Owner Email</label>
+                    <input type="email" id="rpm_email" readonly class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono text-gray-700">
+                </div>
+
+                <!-- Option A: Send Supabase Magic Reset Link -->
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-3.5">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-paper-plane text-blue-600 text-base mt-0.5"></i>
+                        <div class="flex-1">
+                            <h4 class="text-xs font-bold text-blue-900">Email Self-Service Reset Link</h4>
+                            <p class="text-[11px] text-blue-700 mt-0.5">Sends an official Supabase password reset link directly to the merchant's registered inbox.</p>
+                            <button type="button" id="rpm_send_link_btn" onclick="sendResetEmail()" class="mt-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                                <i class="fas fa-envelope"></i> Send Reset Link to Email
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option B: Assign Temporary Password with Forced Change -->
+                <div class="border-t border-gray-100 pt-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-gray-700">Assign Temporary Password</label>
+                        <button type="button" onclick="generateRandomPassword('rpm_password')" class="text-xs text-platform-600 hover:text-platform-800 font-medium flex items-center gap-1">
+                            <i class="fas fa-dice"></i> Generate Random
+                        </button>
+                    </div>
+                    <input type="text" id="rpm_password" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs font-mono focus:border-platform-500 outline-none" placeholder="Enter or generate temporary password">
+                    <p class="text-[11px] text-amber-700 bg-amber-50 rounded p-2 mt-2 border border-amber-200 flex items-start gap-1">
+                        <i class="fas fa-shield-alt text-amber-600 mt-0.5 flex-shrink-0"></i>
+                        <span>Upon first login with this password, the merchant is strictly prompted to replace it with their own private password.</span>
+                    </p>
+                </div>
+
+                <div id="rpm_alert" class="hidden text-xs rounded-lg p-3"></div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button type="button" onclick="closeResetPasswordModal()" class="px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-gray-100 transition">Close</button>
+                    <button type="button" id="rpm_submit_btn" onclick="saveTemporaryPassword()" class="bg-platform-600 hover:bg-platform-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fas fa-key"></i> Provision / Set Password
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -841,9 +918,11 @@ curl -X POST "https://www.trendyrd.com/api/fulfillment/inventory/sync" \<br>
                 <td class="px-5 py-3.5">
                     <span class="status-${t.billing_status || 'trial'} text-xs font-medium px-2.5 py-1 rounded-full">${t.billing_status || 'trial'}</span>
                 </td>
-                <td class="px-5 py-3.5 text-center text-sm text-gray-600">—</td>
-                <td class="px-5 py-3.5 text-right">
-                    <button onclick="event.stopPropagation(); openTenantDetail('${t.id}')" class="text-gray-400 hover:text-platform-600 transition" title="View details">
+                <td class="px-5 py-3.5 text-right flex items-center justify-end gap-2">
+                    <button onclick="event.stopPropagation(); openPasswordModal('${t.id}', '${esc(t.name)}', '${esc(t.owner_email || '')}')" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 transition border border-amber-200 flex items-center gap-1 shadow-sm" title="Credentials / Reset Password">
+                        <i class="fas fa-key text-[10px]"></i> Clave
+                    </button>
+                    <button onclick="event.stopPropagation(); openTenantDetail('${t.id}')" class="text-gray-400 hover:text-platform-600 transition p-1" title="View details">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </td>
@@ -960,8 +1039,9 @@ curl -X POST "https://www.trendyrd.com/api/fulfillment/inventory/sync" \<br>
                     </div>
 
                     <!-- Actions -->
-                    <div class="border-t border-gray-100 pt-4 flex gap-3">
+                    <div class="border-t border-gray-100 pt-4 flex flex-wrap gap-2">
                         <button onclick="openEditTenantModal('${t.id}')" class="px-4 py-2 rounded-lg text-sm bg-platform-50 text-platform-700 hover:bg-platform-100 transition"><i class="fas fa-pen mr-1"></i> Edit</button>
+                        <button onclick="openPasswordModal('${t.id}', '${esc(t.name)}', '${esc(t.owner_email || '')}')" class="px-4 py-2 rounded-lg text-sm bg-amber-50 text-amber-700 hover:bg-amber-100 transition border border-amber-200"><i class="fas fa-key mr-1"></i> Clave / Password</button>
                         ${t.status === 'active' ? `<button onclick="toggleTenantStatus('${t.id}', 'suspended')" class="px-4 py-2 rounded-lg text-sm bg-red-50 text-red-700 hover:bg-red-100 transition"><i class="fas fa-pause mr-1"></i> Suspend</button>` : ''}
                         ${t.status === 'suspended' ? `<button onclick="toggleTenantStatus('${t.id}', 'active')" class="px-4 py-2 rounded-lg text-sm bg-green-50 text-green-700 hover:bg-green-100 transition"><i class="fas fa-play mr-1"></i> Activate</button>` : ''}
                         ${t.status === 'setup' ? `<button onclick="toggleTenantStatus('${t.id}', 'active')" class="px-4 py-2 rounded-lg text-sm bg-green-50 text-green-700 hover:bg-green-100 transition"><i class="fas fa-check mr-1"></i> Activate</button>` : ''}
@@ -1039,8 +1119,30 @@ curl -X POST "https://www.trendyrd.com/api/fulfillment/inventory/sync" \<br>
         if (supaUrl) payload.supabase_url = supaUrl;
         if (supaKey) payload.supabase_anon_key = supaKey;
 
+        const tempPassword = document.getElementById('ct_password').value.trim();
+
         try {
             await api('/superadmin/api/tenants', 'POST', payload);
+
+            // If a temporary password was provided, provision user in Supabase Auth with must_change_password: true
+            if (tempPassword) {
+                try {
+                    await sb.auth.signUp({
+                        email: payload.owner_email,
+                        password: tempPassword,
+                        options: {
+                            data: {
+                                name: payload.owner_name,
+                                tenant_slug: payload.slug,
+                                must_change_password: true
+                            }
+                        }
+                    });
+                } catch (authErr) {
+                    console.warn('Supabase Auth user provisioning note:', authErr);
+                }
+            }
+
             closeCreateModal();
             loadTenants();
             if (currentTab === 'overview') loadOverview();
@@ -1053,6 +1155,117 @@ curl -X POST "https://www.trendyrd.com/api/fulfillment/inventory/sync" \<br>
             btn.innerHTML = '<i class="fas fa-plus"></i> Create Tenant';
         }
     });
+
+    // ═══════════════════════════════════════════════════════════
+    // PASSWORD MANAGEMENT & CREDENTIALS
+    // ═══════════════════════════════════════════════════════════
+    function generateRandomPassword(targetId) {
+        const uppers = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const lowers = "abcdefghjkmnpqrstuvwxyz";
+        const numbers = "23456789";
+        const specials = "!@#$%*";
+        
+        let pass = "Synk-";
+        for (let i = 0; i < 3; i++) pass += uppers.charAt(Math.floor(Math.random() * uppers.length));
+        for (let i = 0; i < 3; i++) pass += numbers.charAt(Math.floor(Math.random() * numbers.length));
+        pass += specials.charAt(Math.floor(Math.random() * specials.length));
+        for (let i = 0; i < 2; i++) pass += lowers.charAt(Math.floor(Math.random() * lowers.length));
+        
+        const el = document.getElementById(targetId);
+        if (el) el.value = pass;
+        return pass;
+    }
+
+    let activePasswordTenant = null;
+
+    function openPasswordModal(tenantId, tenantName, ownerEmail) {
+        activePasswordTenant = { id: tenantId, name: tenantName, email: ownerEmail };
+        document.getElementById('rpm_tenant_name').textContent = tenantName || 'Tenant';
+        document.getElementById('rpm_email').value = ownerEmail || '';
+        document.getElementById('rpm_password').value = '';
+        const alertDiv = document.getElementById('rpm_alert');
+        alertDiv.className = 'hidden text-xs rounded-lg p-3';
+        alertDiv.textContent = '';
+        document.getElementById('resetPasswordModal').classList.remove('hidden');
+    }
+
+    function closeResetPasswordModal() {
+        document.getElementById('resetPasswordModal').classList.add('hidden');
+        activePasswordTenant = null;
+    }
+
+    async function sendResetEmail() {
+        if (!activePasswordTenant || !activePasswordTenant.email) {
+            alert('Este comercio no tiene un correo de propietario registrado.');
+            return;
+        }
+        const btn = document.getElementById('rpm_send_link_btn');
+        const alertDiv = document.getElementById('rpm_alert');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Sending...';
+        alertDiv.classList.add('hidden');
+
+        try {
+            const redirectUrl = window.location.origin + '/login';
+            const { error } = await sb.auth.resetPasswordForEmail(activePasswordTenant.email, {
+                redirectTo: redirectUrl
+            });
+            if (error) throw error;
+            alertDiv.className = 'bg-green-50 border border-green-200 text-green-700 text-xs rounded-lg p-3 block';
+            alertDiv.innerHTML = `<i class="fas fa-check-circle mr-1"></i> Password reset email sent to <strong>${esc(activePasswordTenant.email)}</strong>.`;
+        } catch (e) {
+            alertDiv.className = 'bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg p-3 block';
+            alertDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-1"></i> Error sending reset email: ${esc(e.message)}`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-envelope mr-1"></i> Send Reset Link to Email';
+        }
+    }
+
+    async function saveTemporaryPassword() {
+        const pwd = document.getElementById('rpm_password').value.trim();
+        const alertDiv = document.getElementById('rpm_alert');
+        if (!pwd || pwd.length < 6) {
+            alertDiv.className = 'bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg p-3 block';
+            alertDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i> Password must be at least 6 characters.';
+            return;
+        }
+        const btn = document.getElementById('rpm_submit_btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Provisioning...';
+        alertDiv.classList.add('hidden');
+
+        try {
+            const { data, error } = await sb.auth.signUp({
+                email: activePasswordTenant.email,
+                password: pwd,
+                options: {
+                    data: {
+                        name: activePasswordTenant.name,
+                        must_change_password: true
+                    }
+                }
+            });
+
+            if (error) {
+                if (error.message.toLowerCase().includes('already registered')) {
+                    alertDiv.className = 'bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg p-3 block';
+                    alertDiv.innerHTML = `<i class="fas fa-info-circle mr-1"></i> Este usuario ya está registrado en Supabase Auth. Utiliza el botón <strong>"Send Reset Link to Email"</strong> de arriba para enviarle el link de restablecimiento directo a su correo.`;
+                    return;
+                }
+                throw error;
+            }
+
+            alertDiv.className = 'bg-green-50 border border-green-200 text-green-700 text-xs rounded-lg p-3 block';
+            alertDiv.innerHTML = `<i class="fas fa-check-circle mr-1"></i> Credentials provisioned with temporary password: <code class="font-mono bg-white px-1.5 py-0.5 rounded border">${esc(pwd)}</code>. The merchant will be prompted to change it on their first login.`;
+        } catch (e) {
+            alertDiv.className = 'bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg p-3 block';
+            alertDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-1"></i> Error: ${esc(e.message)}`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-key mr-1"></i> Provision / Set Password';
+        }
+    }
 
     // ═══════════════════════════════════════════════════════════
     // PLANS TAB

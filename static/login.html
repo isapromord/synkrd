@@ -403,6 +403,56 @@
                 </form>
             </div>
 
+            <!-- ═══ FORCE PASSWORD CHANGE FORM (FIRST LOGIN) ═══ -->
+            <div id="form-force-change" class="form-slide hidden-form">
+                <div class="text-center mb-4">
+                    <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-2 text-xl shadow-sm">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Crea tu Contraseña</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Por seguridad, debes actualizar la contraseña temporal asignada por el Super-Admin para proteger tu tienda.</p>
+                </div>
+
+                <div id="force-change-error"
+                    class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="force-change-error-text"></span>
+                </div>
+
+                <div id="force-change-success"
+                    class="hidden bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 text-sm rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="force-change-success-text"></span>
+                </div>
+
+                <form onsubmit="handleForceChangePassword(event)" class="space-y-4">
+                    <div class="input-group">
+                        <input type="password" id="force-new-password" required autocomplete="new-password" minlength="6"
+                            class="w-full border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            placeholder="Nueva contraseña privada (mín. 6 caracteres)">
+                        <i class="fas fa-lock field-icon"></i>
+                        <button type="button" class="toggle-pw" onclick="togglePassword('force-new-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="password" id="force-confirm-password" required autocomplete="new-password" minlength="6"
+                            class="w-full border dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-white rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            placeholder="Confirmar tu nueva contraseña">
+                        <i class="fas fa-shield-alt field-icon"></i>
+                        <button type="button" class="toggle-pw" onclick="togglePassword('force-confirm-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" id="btn-force-change"
+                        class="w-full btn-primary text-white rounded-xl py-3 font-bold text-sm shadow-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-check"></i> Guardar y Entrar al Dashboard
+                    </button>
+                </form>
+            </div>
+
         </div>
 
         <!-- Footer -->
@@ -429,6 +479,10 @@
         (async () => {
             const { data: { session } } = await supaClient.auth.getSession();
             if (session) {
+                if (session.user?.user_metadata?.must_change_password) {
+                    showForm('force-change');
+                    return;
+                }
                 console.log('[LOGIN] Already has session, going to admin');
                 window.location.replace('/admin');
             }
@@ -465,7 +519,7 @@
         // ═══════════════════════════════════════════════════════════
 
         function showForm(formName) {
-            const forms = ['login', 'register', 'forgot', 'reset'];
+            const forms = ['login', 'register', 'forgot', 'reset', 'force-change'];
             forms.forEach(f => {
                 const el = document.getElementById(`form-${f}`);
                 if (f === formName) {
@@ -587,7 +641,13 @@
                 return;
             }
 
-            // Success — wait for session to be stored, then redirect
+            // Success — check if user MUST change password on first login
+            if (data?.user?.user_metadata?.must_change_password) {
+                showForm('force-change');
+                return;
+            }
+
+            // Standard redirect
             console.log('[LOGIN] Sign in successful, session stored');
             window.location.replace('/admin');
         }
@@ -690,6 +750,43 @@
             setTimeout(() => {
                 window.location.href = '/admin';
             }, 1500);
+        }
+
+        async function handleForceChangePassword(e) {
+            e.preventDefault();
+            clearMessages('force-change');
+
+            const p1 = document.getElementById('force-new-password').value;
+            const p2 = document.getElementById('force-confirm-password').value;
+
+            if (p1 !== p2) {
+                showError('force-change', 'Las contraseñas no coinciden');
+                return;
+            }
+
+            if (p1.length < 6) {
+                showError('force-change', 'La contraseña debe tener al menos 6 caracteres');
+                return;
+            }
+
+            setLoading('btn-force-change', true);
+
+            const { error } = await supaClient.auth.updateUser({
+                password: p1,
+                data: { must_change_password: false }
+            });
+
+            setLoading('btn-force-change', false);
+
+            if (error) {
+                showError('force-change', translateError(error.message));
+                return;
+            }
+
+            showSuccess('force-change', '✅ ¡Contraseña personalizada configurada con éxito! Accediendo a tu panel...');
+            setTimeout(() => {
+                window.location.href = '/admin';
+            }, 1200);
         }
     </script>
 </body>
