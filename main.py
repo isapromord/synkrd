@@ -2226,34 +2226,94 @@ async def admin_save_setting(key: str, payload: BotSettingUpdate):
     return {"error": "Failed to save setting"}
 
 
+@app.get("/admin/api/tenants", tags=["Admin"], dependencies=[Depends(get_current_admin)])
+async def admin_get_accessible_tenants():
+    """List tenants/stores available for management in SynkRD."""
+    import platform_db
+    try:
+        tenants = await platform_db.list_tenants(status="active")
+        if not tenants:
+            # Fallback default tenant for backward compatibility (TrendyRD as Store #1)
+            tenants = [{
+                "id": "trendyrd",
+                "name": "TrendyRD",
+                "slug": "trendyrd",
+                "status": "active",
+                "store_url": "https://trendyrd.com"
+            }]
+        return {"tenants": tenants}
+    except Exception as e:
+        logger.error(f"❌ Error getting accessible tenants: {e}")
+        return {"tenants": [{
+            "id": "trendyrd",
+            "name": "TrendyRD",
+            "slug": "trendyrd",
+            "status": "active",
+            "store_url": "https://trendyrd.com"
+        }]}
+
+
 @app.get("/admin/api/catalog", tags=["Admin"], dependencies=[Depends(get_current_admin)])
-async def admin_get_catalog():
-    """Get catalog products for dashboard display."""
+async def admin_get_catalog(tenant_id: Optional[str] = None):
+    """Get catalog products for dashboard display, filtered by tenant/store."""
     client = db.get_supabase()
     if not client:
         return {"products": []}
     try:
-        res = client.table("products").select(
+        q = client.table("products").select(
             "name,category,price_min,price_max,currency,available,image_url,url"
-        ).order("name").execute()
+        )
+        if tenant_id and tenant_id not in ("all", "default"):
+            try:
+                # Try filtering by tenant_id or store_slug
+                filtered = client.table("products").select(
+                    "name,category,price_min,price_max,currency,available,image_url,url"
+                ).or_(f"tenant_id.eq.{tenant_id},store_slug.eq.{tenant_id}").order("name").execute()
+                if filtered.data and len(filtered.data) > 0:
+                    return {"products": filtered.data}
+            except Exception:
+                # If column doesn't exist yet in DB, gracefully fallback
+                pass
+
+        res = q.order("name").execute()
         return {"products": res.data or []}
     except Exception as e:
         logger.error(f"❌ Error getting catalog: {e}")
         return {"products": []}
 
 
+class SyncTenantRequest(BaseModel):
+    tenant_id: Optional[str] = None
+
+
 @app.post("/admin/api/sync", tags=["Admin"], dependencies=[Depends(get_current_admin)])
-async def admin_trigger_sync():
-    """Manual trigger to sync the catalog from Shopify to Supabase and context."""
+async def admin_trigger_sync(payload: Optional[SyncTenantRequest] = None, tenant_id: Optional[str] = None):
+    """Manual trigger to sync the catalog from the tenant store (Shopify/Next) to Supabase and context."""
     global _product_context, _products_raw, _upsell_context
+    target_tenant = tenant_id or (payload.tenant_id if payload else None)
+    import platform_db
     try:
+        store_url = settings.shopify.store_url
+        access_token = settings.shopify.access_token
+        api_version = settings.shopify.api_version
+
+        # If a tenant is specified and different from the default
+        if target_tenant and target_tenant not in ("trendyrd", "default"):
+            tenant = await platform_db.get_tenant(target_tenant)
+            if tenant and tenant.get("store_url"):
+                clean_url = tenant["store_url"].replace("https://", "").replace("http://", "").strip("/")
+                store_url = clean_url
+
         products = fetch_all_products(
-            settings.shopify.store_url,
-            access_token=settings.shopify.access_token,
-            api_version=settings.shopify.api_version,
+            store_url,
+            access_token=access_token,
+            api_version=api_version,
         )
         synced = 0
         for product in products:
+            if target_tenant:
+                product["tenant_id"] = target_tenant
+                product["store_slug"] = target_tenant
             if await db.upsert_product(product):
                 synced += 1
 
@@ -2263,11 +2323,11 @@ async def admin_trigger_sync():
 
         # Refresh ReleaseIt upsell context
         _upsell_context = fetch_upsell_context(
-            settings.shopify.store_url,
-            settings.shopify.access_token,
+            store_url,
+            access_token,
         )
-        logger.info(f"📦 Admin manual sync complete: {synced}/{len(products)} products + upsells refreshed")
-        return {"status": "ok", "total_products": len(products), "synced": synced}
+        logger.info(f"📦 Admin manual sync complete for tenant {target_tenant or 'default'}: {synced}/{len(products)} products (store: {store_url})")
+        return {"status": "ok", "total_products": len(products), "synced": synced, "tenant_id": target_tenant, "store_url": store_url}
     except Exception as e:
         logger.error(f"❌ Error during manual sync: {e}")
         return {"error": str(e)}
