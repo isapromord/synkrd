@@ -1,1086 +1,1515 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <title>Sofía Admin — SynkDR</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="static/favicon.png">
-  <link rel="icon" type="image/x-icon" href="static/favicon.ico">
-  <link rel="shortcut icon" href="static/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="static/apple-touch-icon.png">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #242836;
-      --border: #2e3345;
-      --text: #e4e6ed;
-      --text2: #8b90a0;
-      --accent: #7c5cfc;
-      --accent2: #9b7cff;
-      --green: #34d399;
-      --green-bg: rgba(52,211,153,0.12);
-      --red: #f87171;
-      --red-bg: rgba(248,113,113,0.12);
-      --yellow: #fbbf24;
-      --yellow-bg: rgba(251,191,36,0.12);
-      --blue: #60a5fa;
-      --blue-bg: rgba(96,165,250,0.12);
-      --radius: 12px;
-      --shadow: 0 4px 24px rgba(0,0,0,0.3);
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    /* ── TOP NAV ── */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      height: 56px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      position: sticky; top: 0; z-index: 100;
-    }
-    .topbar-left { display:flex; align-items:center; gap:12px; }
-    .topbar-logo { font-size:20px; font-weight:700; }
-    .topbar-logo span { color: var(--accent); }
-    .topbar-badge {
-      font-size:11px;
-      background: var(--accent);
-      color:#fff;
-      padding:2px 8px;
-      border-radius:20px;
-    }
-    .topbar-right { display:flex; align-items:center; gap:16px; }
-    .topbar-status {
-      display:flex; align-items:center; gap:6px;
-      font-size:13px; color:var(--green);
-    }
-    .topbar-status .dot {
-      width:8px; height:8px; border-radius:50%;
-      background:var(--green);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%,100%{opacity:1} 50%{opacity:.4}
-    }
-    .btn-logout {
-      background:transparent;
-      border:1px solid var(--border);
-      color:var(--text2);
-      padding:6px 14px;
-      border-radius:8px;
-      cursor:pointer;
-      font-size:13px;
-      transition:.2s;
-    }
-    .btn-logout:hover { border-color:var(--red); color:var(--red); }
-
-    /* ── TABS ── */
-    .tab-bar {
-      display:flex;
-      gap:0;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-    }
-    .tab-btn {
-      padding: 12px 20px;
-      background:none;
-      border:none;
-      color:var(--text2);
-      font-size:14px;
-      cursor:pointer;
-      border-bottom:2px solid transparent;
-      transition:.2s;
-      display:flex; align-items:center; gap:6px;
-    }
-    .tab-btn:hover { color:var(--text); }
-    .tab-btn.active {
-      color:var(--accent2);
-      border-bottom-color:var(--accent);
-    }
-    .tab-btn .badge {
-      background:var(--accent);
-      color:#fff;
-      font-size:11px;
-      padding:1px 7px;
-      border-radius:10px;
-      min-width:20px;
-      text-align:center;
-    }
-
-    /* ── TAB CONTENT ── */
-    .tab-content { display:none; padding:24px; max-width:1200px; margin:0 auto; }
-    .tab-content.active { display:block; }
-
-    /* ── KPI CARDS ── */
-    .kpi-grid {
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap:16px;
-      margin-bottom:24px;
-    }
-    .kpi-card {
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      padding:20px;
-      transition: .2s;
-    }
-    .kpi-card:hover { border-color: var(--accent); transform:translateY(-2px); box-shadow:var(--shadow); }
-    .kpi-header {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom:12px;
-    }
-    .kpi-label { font-size:13px; color:var(--text2); font-weight:500; }
-    .kpi-icon {
-      width:36px; height:36px;
-      border-radius:10px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:18px;
-    }
-    .kpi-value { font-size:28px; font-weight:700; line-height:1; margin-bottom:4px; }
-    .kpi-sub { font-size:12px; color:var(--text2); }
-
-    /* ── SECTIONS ── */
-    .section-title {
-      font-size:16px;
-      font-weight:600;
-      margin-bottom:16px;
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
-    @media(max-width:768px){ .grid-2{grid-template-columns:1fr;} }
-
-    .card {
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      padding:20px;
-    }
-
-    /* ── PRODUCT TABLE ── */
-    .product-grid {
-      display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap:12px;
-    }
-    .product-card {
-      background:var(--surface2);
-      border:1px solid var(--border);
-      border-radius:10px;
-      overflow:hidden;
-      transition:.2s;
-    }
-    .product-card:hover { border-color:var(--accent); }
-    .product-img {
-      width:100%;
-      height:140px;
-      object-fit:cover;
-      background:var(--bg);
-    }
-    .product-info { padding:10px; }
-    .product-name {
-      font-size:13px;
-      font-weight:600;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .product-meta {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-top:6px;
-    }
-    .product-price { font-size:14px; font-weight:700; color:var(--green); }
-    .product-badge {
-      font-size:10px;
-      padding:2px 8px;
-      border-radius:20px;
-      font-weight:600;
-    }
-    .badge-available { background:var(--green-bg); color:var(--green); }
-    .badge-unavailable { background:var(--red-bg); color:var(--red); }
-
-    /* ── CATEGORY CHIPS ── */
-    .cat-chips { display:flex; flex-wrap:wrap; gap:8px; }
-    .cat-chip {
-      background:var(--surface2);
-      border:1px solid var(--border);
-      padding:6px 14px;
-      border-radius:20px;
-      font-size:13px;
-      display:flex; align-items:center; gap:6px;
-    }
-    .cat-chip .count {
-      background:var(--accent);
-      color:#fff;
-      font-size:11px;
-      padding:0 6px;
-      border-radius:10px;
-      font-weight:700;
-    }
-
-    /* ── ACTIVITY FEED ── */
-    .activity-list { max-height:320px; overflow-y:auto; }
-    .activity-item {
-      display:flex;
-      align-items:flex-start;
-      gap:10px;
-      padding:10px 0;
-      border-bottom:1px solid var(--border);
-    }
-    .activity-item:last-child { border:none; }
-    .activity-icon {
-      width:32px; height:32px;
-      border-radius:50%;
-      display:flex; align-items:center; justify-content:center;
-      font-size:14px;
-      flex-shrink:0;
-    }
-    .activity-text { font-size:13px; line-height:1.5; }
-    .activity-text strong { color:var(--text); }
-    .activity-time { font-size:11px; color:var(--text2); }
-
-    /* ── PERFORMANCE BAR ── */
-    .perf-row {
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin-bottom:12px;
-    }
-    .perf-label { font-size:13px; min-width:110px; color:var(--text2); }
-    .perf-bar-track {
-      flex:1;
-      height:8px;
-      background:var(--surface2);
-      border-radius:4px;
-      overflow:hidden;
-    }
-    .perf-bar-fill {
-      height:100%;
-      border-radius:4px;
-      transition: width .6s ease;
-    }
-    .perf-value { font-size:13px; font-weight:600; min-width:48px; text-align:right; }
-
-    /* ── USAGE METER ── */
-    .usage-ring-wrap { text-align:center; padding:10px 0; }
-    .usage-ring { position:relative; display:inline-block; }
-    .usage-ring svg { transform:rotate(-90deg); }
-    .usage-ring-text {
-      position:absolute;
-      top:50%; left:50%;
-      transform:translate(-50%,-50%);
-      font-size:20px;
-      font-weight:700;
-    }
-    .usage-ring-label { font-size:12px; color:var(--text2); margin-top:6px; }
-
-    /* ── CHATS TAB ── */
-    .chat-layout { display:grid; grid-template-columns:320px 1fr; gap:0; height:calc(100vh - 160px); }
-    @media(max-width:768px){ .chat-layout{ grid-template-columns:1fr; } }
-    .chat-sidebar {
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:var(--radius) 0 0 var(--radius);
-      overflow-y:auto;
-    }
-    .chat-search {
-      padding:12px;
-      border-bottom:1px solid var(--border);
-    }
-    .chat-search input {
-      width:100%;
-      padding:8px 12px;
-      border-radius:8px;
-      border:1px solid var(--border);
-      background:var(--surface2);
-      color:var(--text);
-      font-size:13px;
-      outline:none;
-    }
-    .chat-search input:focus { border-color:var(--accent); }
-    .conv-item {
-      padding:12px 16px;
-      border-bottom:1px solid var(--border);
-      cursor:pointer;
-      transition:.15s;
-    }
-    .conv-item:hover, .conv-item.active { background:var(--surface2); }
-    .conv-item .conv-name { font-size:14px; font-weight:600; }
-    .conv-item .conv-preview {
-      font-size:12px;
-      color:var(--text2);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      margin-top:2px;
-    }
-    .conv-item .conv-time { font-size:11px; color:var(--text2); float:right; }
-    .conv-state {
-      font-size:10px;
-      padding:2px 8px;
-      border-radius:10px;
-      font-weight:600;
-      display:inline-block;
-      margin-top:4px;
-    }
-    .state-active { background:var(--green-bg); color:var(--green); }
-    .state-closed { background:var(--surface2); color:var(--text2); }
-    .state-escalated { background:var(--yellow-bg); color:var(--yellow); }
-
-    .chat-main {
-      background:var(--bg);
-      border:1px solid var(--border);
-      border-left:none;
-      border-radius:0 var(--radius) var(--radius) 0;
-      display:flex;
-      flex-direction:column;
-    }
-    .chat-header {
-      padding:14px 20px;
-      border-bottom:1px solid var(--border);
-      background:var(--surface);
-      font-weight:600;
-      display:flex; align-items:center; justify-content:space-between;
-    }
-    .chat-messages {
-      flex:1;
-      overflow-y:auto;
-      padding:20px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .chat-empty {
-      flex:1;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:var(--text2);
-      font-size:14px;
-    }
-    .msg {
-      max-width:70%;
-      padding:10px 14px;
-      border-radius:14px;
-      font-size:13px;
-      line-height:1.5;
-    }
-    .msg-customer {
-      background:var(--surface2);
-      align-self:flex-start;
-      border-bottom-left-radius:4px;
-    }
-    .msg-bot {
-      background:var(--accent);
-      color:#fff;
-      align-self:flex-end;
-      border-bottom-right-radius:4px;
-    }
-    .msg-admin {
-      background:var(--yellow-bg);
-      border:1px solid var(--yellow);
-      align-self:flex-end;
-      border-bottom-right-radius:4px;
-    }
-    .msg-time { font-size:10px; color:var(--text2); margin-top:4px; }
-    .chat-input-bar {
-      padding:12px 20px;
-      border-top:1px solid var(--border);
-      display:flex;
-      gap:8px;
-    }
-    .chat-input-bar input {
-      flex:1;
-      padding:10px 14px;
-      border-radius:10px;
-      border:1px solid var(--border);
-      background:var(--surface);
-      color:var(--text);
-      font-size:13px;
-      outline:none;
-    }
-    .chat-input-bar input:focus { border-color:var(--accent); }
-    .btn-send {
-      background:var(--accent);
-      border:none;
-      color:#fff;
-      padding:10px 18px;
-      border-radius:10px;
-      cursor:pointer;
-      font-size:14px;
-      transition:.2s;
-    }
-    .btn-send:hover { background:var(--accent2); }
-
-    /* ── SETTINGS TAB ── */
-    .settings-grid { display:grid; grid-template-columns:1fr; gap:20px; }
-    .setting-section-label {
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:1px;
-      color:var(--text2);
-      margin-bottom:8px;
-    }
-    .setting-row {
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      margin-bottom:16px;
-    }
-    .setting-row label { font-size:13px; font-weight:600; }
-    .setting-row textarea, .setting-row input[type="text"] {
-      width:100%;
-      padding:10px;
-      border-radius:8px;
-      border:1px solid var(--border);
-      background:var(--surface2);
-      color:var(--text);
-      font-size:13px;
-      font-family:inherit;
-      resize:vertical;
-      outline:none;
-    }
-    .setting-row textarea:focus, .setting-row input[type="text"]:focus {
-      border-color:var(--accent);
-    }
-    .btn-save {
-      background:var(--accent);
-      border:none;
-      color:#fff;
-      padding:10px 24px;
-      border-radius:10px;
-      cursor:pointer;
-      font-size:14px;
-      font-weight:600;
-      transition:.2s;
-    }
-    .btn-save:hover { background:var(--accent2); }
-    .btn-sync {
-      background:var(--surface2);
-      border:1px solid var(--border);
-      color:var(--text);
-      padding:8px 16px;
-      border-radius:8px;
-      cursor:pointer;
-      font-size:13px;
-      transition:.2s;
-    }
-    .btn-sync:hover { border-color:var(--accent); color:var(--accent); }
-    .toast {
-      position:fixed;
-      bottom:24px;
-      right:24px;
-      background:var(--green);
-      color:#000;
-      padding:12px 20px;
-      border-radius:10px;
-      font-size:14px;
-      font-weight:600;
-      z-index:999;
-      opacity:0;
-      transform:translateY(20px);
-      transition:.3s;
-    }
-    .toast.show { opacity:1; transform:translateY(0); }
-
-    /* ── LOADING SKELETON ── */
-    .skeleton {
-      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 8px;
-    }
-    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sofía Platform — Super Admin Dashboard</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="static/favicon.png">
+    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
+    <link rel="shortcut icon" href="static/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="static/apple-touch-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        platform: {
+                            50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+                            400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+                            800: '#3730a3', 900: '#312e81'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar { transition: width 0.3s ease; }
+        .glass-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border: 1px solid rgba(0,0,0,0.06); }
+        .bg-app { background: #f1f5f9; }
+        .status-active { color: #059669; background: #d1fae5; }
+        .status-setup { color: #d97706; background: #fef3c7; }
+        .status-suspended { color: #dc2626; background: #fee2e2; }
+        .status-trial { color: #6366f1; background: #e0e7ff; }
+        .status-deleted { color: #6b7280; background: #f3f4f6; }
+        .modal-overlay { background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        .fade-in { animation: fadeIn 0.3s ease; }
+        .slide-up { animation: slideUp 0.3s ease; }
+        .kpi-card { transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-2px); }
+    </style>
 </head>
-<body>
+<body class="bg-app min-h-screen">
 
-<!-- ── TOPBAR ── -->
-<header class="topbar">
-  <div class="topbar-left">
-    <img src="images/synkrd-logo.png" onerror="this.src='/static/images/synkrd-logo.png'; this.onerror=function(){this.src='../static/images/synkrd-logo.png';};" alt="SynkRD" style="height: 30px; width: auto; object-fit: contain;">
-    <span class="topbar-badge" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; border-radius: 6px; padding: 2px 8px; font-weight: 600; font-size: 11px;">Sofía AI</span>
-  </div>
-  <div class="topbar-right">
-    <div class="topbar-status"><div class="dot"></div> En línea</div>
-    <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
-  </div>
-</header>
-
-<!-- ── TAB BAR ── -->
-<nav class="tab-bar">
-  <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
-  <button class="tab-btn" data-tab="chats">💬 Chats <span class="badge" id="chatBadge">0</span></button>
-  <button class="tab-btn" data-tab="settings">⚙️ Ajustes</button>
-  <a class="tab-btn" href="/admin/crm" style="text-decoration:none">👥 CRM</a>
-</nav>
-
-<!-- ═══════════════════ DASHBOARD TAB ═══════════════════ -->
-<div class="tab-content active" id="tab-dashboard">
-
-  <!-- KPI Cards -->
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-label">Conversaciones Hoy</span>
-        <div class="kpi-icon" style="background:var(--blue-bg);color:var(--blue)">💬</div>
-      </div>
-      <div class="kpi-value" id="kpi-convs">—</div>
-      <div class="kpi-sub" id="kpi-convs-sub">cargando...</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-label">Tasa Resolución</span>
-        <div class="kpi-icon" style="background:var(--green-bg);color:var(--green)">✅</div>
-      </div>
-      <div class="kpi-value" id="kpi-resolution">—</div>
-      <div class="kpi-sub" id="kpi-resolution-sub">cargando...</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-label">Resp. Promedio</span>
-        <div class="kpi-icon" style="background:var(--yellow-bg);color:var(--yellow)">⚡</div>
-      </div>
-      <div class="kpi-value" id="kpi-response">—</div>
-      <div class="kpi-sub" id="kpi-response-sub">cargando...</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-label">Escalaciones</span>
-        <div class="kpi-icon" style="background:var(--red-bg);color:var(--red)">🚨</div>
-      </div>
-      <div class="kpi-value" id="kpi-escalations">—</div>
-      <div class="kpi-sub" id="kpi-escalations-sub">cargando...</div>
-    </div>
-  </div>
-
-  <!-- Row 2: Performance + Usage -->
-  <div class="grid-2">
-    <!-- Performance -->
-    <div class="card">
-      <div class="section-title">⚡ Rendimiento</div>
-      <div class="perf-row">
-        <span class="perf-label">Resolución</span>
-        <div class="perf-bar-track"><div class="perf-bar-fill" id="perf-resolution" style="width:0;background:var(--green)"></div></div>
-        <span class="perf-value" id="perf-resolution-val">—</span>
-      </div>
-      <div class="perf-row">
-        <span class="perf-label">Resp &lt; 3s</span>
-        <div class="perf-bar-track"><div class="perf-bar-fill" id="perf-under3s" style="width:0;background:var(--blue)"></div></div>
-        <span class="perf-value" id="perf-under3s-val">—</span>
-      </div>
-      <div class="perf-row">
-        <span class="perf-label">Tier 1 (Flash)</span>
-        <div class="perf-bar-track"><div class="perf-bar-fill" id="perf-tier1" style="width:0;background:var(--accent)"></div></div>
-        <span class="perf-value" id="perf-tier1-val">—</span>
-      </div>
-      <div class="perf-row">
-        <span class="perf-label">Tier 2 (Claude)</span>
-        <div class="perf-bar-track"><div class="perf-bar-fill" id="perf-tier2" style="width:0;background:var(--yellow)"></div></div>
-        <span class="perf-value" id="perf-tier2-val">—</span>
-      </div>
-    </div>
-
-    <!-- Usage Meter -->
-    <div class="card" style="text-align:center;">
-      <div class="section-title" style="justify-content:center;">📊 Uso del Plan</div>
-      <div class="usage-ring-wrap">
-        <div class="usage-ring">
-          <svg width="120" height="120">
-            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface2)" stroke-width="10"/>
-            <circle id="usageCircle" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="10"
-              stroke-dasharray="326.7" stroke-dashoffset="326.7" stroke-linecap="round" style="transition:stroke-dashoffset .8s ease"/>
-          </svg>
-          <div class="usage-ring-text" id="usagePct">—</div>
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-slate-900 text-white z-40 sidebar flex flex-col">
+        <!-- Logo -->
+        <div class="p-5 border-b border-slate-700/50">
+            <a href="superadmin.html" class="flex items-center gap-3 no-underline">
+                <img src="images/synkrd-icon.png" onerror="this.src='/static/images/synkrd-icon.png'; this.onerror=function(){this.src='../static/images/synkrd-icon.png';};" alt="SynkRD" class="w-9 h-9 object-contain drop-shadow">
+                <div>
+                    <div class="font-bold text-sm tracking-tight text-white flex items-center gap-1.5">
+                        <span>SynkRD</span>
+                        <span class="text-[10px] bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30">Sofía</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Super Admin</div>
+                </div>
+            </a>
         </div>
-        <div class="usage-ring-label" id="usageLabel">— / — conversaciones</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Row 3: Catalog + Recent Activity -->
-  <div class="grid-2">
-    <!-- Catalog Overview -->
-    <div class="card">
-      <div class="section-title" style="justify-content:space-between;">
-        <span>🛍️ Catálogo Shopify</span>
-        <button class="btn-sync" onclick="syncCatalog()">↻ Sincronizar</button>
-      </div>
-      <div style="display:flex;gap:16px;margin-bottom:14px;">
-        <div>
-          <div style="font-size:24px;font-weight:700;" id="cat-total">—</div>
-          <div style="font-size:12px;color:var(--text2);">Productos</div>
+        <!-- Nav -->
+        <nav class="flex-1 p-3 space-y-1">
+            <button onclick="showTab('overview')" data-tab="overview"
+                class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fas fa-chart-pie w-5 text-center"></i> Overview
+            </button>
+            <button onclick="showTab('tenants')" data-tab="tenants"
+                class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fas fa-building w-5 text-center"></i> Tenants
+            </button>
+            <button onclick="showTab('plans')" data-tab="plans"
+                class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fas fa-tags w-5 text-center"></i> Plans
+            </button>
+            <button onclick="showTab('logs')" data-tab="logs"
+                class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fas fa-scroll w-5 text-center"></i> Activity Logs
+            </button>
+            <button onclick="showTab('fulfillment')" data-tab="fulfillment"
+                class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <i class="fas fa-boxes-packing w-5 text-center"></i> Fulfillment Hub
+            </button>
+        </nav>
+
+        <!-- User -->
+        <div class="p-4 border-t border-slate-700/50">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-platform-600 flex items-center justify-center text-xs font-bold" id="userAvatar">SA</div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-xs font-medium truncate" id="userName">Super Admin</div>
+                    <div class="text-[10px] text-slate-400 truncate" id="userEmail">admin</div>
+                </div>
+                <button onclick="logout()" class="text-slate-400 hover:text-red-400 transition" title="Cerrar sesión">
+                    <i class="fas fa-sign-out-alt text-sm"></i>
+                </button>
+            </div>
         </div>
-        <div>
-          <div style="font-size:24px;font-weight:700;color:var(--green)" id="cat-available">—</div>
-          <div style="font-size:12px;color:var(--text2);">Disponibles</div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="ml-64 min-h-screen">
+        <!-- Top bar -->
+        <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-sm border-b border-gray-100 px-6 py-3 flex items-center justify-between">
+            <div>
+                <h1 class="text-lg font-bold text-gray-900" id="pageTitle">Platform Overview</h1>
+                <p class="text-xs text-gray-500" id="pageSubtitle">All tenants, real-time stats</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="refreshCurrentTab()" class="text-sm text-gray-500 hover:text-platform-600 transition flex items-center gap-1.5">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </header>
+
+        <!-- Tab Content -->
+        <div class="p-6">
+            <!-- ═══ OVERVIEW TAB ═══ -->
+            <section id="tab-overview" class="tab-content">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="kpi-card glass-card rounded-xl p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Tenants</span>
+                            <div class="w-8 h-8 rounded-lg bg-platform-50 flex items-center justify-center">
+                                <i class="fas fa-building text-platform-600 text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900" id="kpi-tenants">—</div>
+                        <div class="text-xs text-gray-400 mt-1"><span id="kpi-active" class="text-green-600 font-medium">0</span> active, <span id="kpi-setup" class="text-amber-600 font-medium">0</span> setup</div>
+                    </div>
+                    <div class="kpi-card glass-card rounded-xl p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Conversations</span>
+                            <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                                <i class="fas fa-comments text-green-600 text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900" id="kpi-conversations">—</div>
+                        <div class="text-xs text-gray-400 mt-1">Across all tenants</div>
+                    </div>
+                    <div class="kpi-card glass-card rounded-xl p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Messages</span>
+                            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                                <i class="fas fa-envelope text-blue-600 text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900" id="kpi-messages">—</div>
+                        <div class="text-xs text-gray-400 mt-1">All channels combined</div>
+                    </div>
+                    <div class="kpi-card glass-card rounded-xl p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Online Now</span>
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                                <i class="fas fa-signal text-emerald-600 text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900" id="kpi-online">—</div>
+                        <div class="text-xs text-gray-400 mt-1">Bots reachable</div>
+                    </div>
+                </div>
+
+                <!-- Plans Overview -->
+                <div class="glass-card rounded-xl p-5 mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-tags text-platform-500"></i> Plans Distribution
+                    </h3>
+                    <div id="plansOverview" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="text-center text-sm text-gray-400 py-4">Loading plans...</div>
+                    </div>
+                </div>
+
+                <!-- Quick Tenant List -->
+                <div class="glass-card rounded-xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-building text-platform-500"></i> Recent Tenants
+                        </h3>
+                        <button onclick="showTab('tenants')" class="text-xs text-platform-600 hover:underline">View all →</button>
+                    </div>
+                    <div id="recentTenants">
+                        <div class="text-center text-sm text-gray-400 py-8">Loading...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══ TENANTS TAB ═══ -->
+            <section id="tab-tenants" class="tab-content hidden">
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <input id="tenantSearch" type="text" placeholder="Search tenants..."
+                            class="px-4 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 focus:ring-2 focus:ring-platform-500/20 outline-none w-64"
+                            oninput="filterTenants()">
+                        <select id="tenantFilter" onchange="filterTenants()"
+                            class="px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                            <option value="">All statuses</option>
+                            <option value="active">Active</option>
+                            <option value="setup">Setup</option>
+                            <option value="trial">Trial</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                    <button onclick="openCreateModal()"
+                        class="bg-platform-600 hover:bg-platform-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                        <i class="fas fa-plus"></i> New Tenant
+                    </button>
+                </div>
+
+                <!-- Tenant Table -->
+                <div class="glass-card rounded-xl overflow-hidden">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-100 text-xs text-gray-500 uppercase tracking-wider">
+                                <th class="text-left px-5 py-3">Tenant</th>
+                                <th class="text-left px-5 py-3">Plan</th>
+                                <th class="text-left px-5 py-3">Status</th>
+                                <th class="text-left px-5 py-3">Billing</th>
+                                <th class="text-center px-5 py-3">Conversations</th>
+                                <th class="text-right px-5 py-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tenantsTable">
+                            <tr><td colspan="6" class="text-center text-sm text-gray-400 py-8">Loading tenants...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ═══ PLANS TAB ═══ -->
+            <section id="tab-plans" class="tab-content hidden">
+                <div class="flex items-center justify-between mb-5">
+                    <div></div>
+                    <button onclick="openPlanModal()" class="bg-platform-600 hover:bg-platform-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                        <i class="fas fa-plus"></i> New Plan
+                    </button>
+                </div>
+                <div id="plansGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center text-sm text-gray-400 py-8">Loading plans...</div>
+                </div>
+            </section>
+
+            <!-- ═══ LOGS TAB ═══ -->
+            <section id="tab-logs" class="tab-content hidden">
+                <div class="glass-card rounded-xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-scroll text-platform-500"></i> Platform Activity
+                        </h3>
+                        <span class="text-xs text-gray-400" id="logsCount">—</span>
+                    </div>
+                    <div id="logsList" class="space-y-2">
+                        <div class="text-center text-sm text-gray-400 py-8">Loading logs...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══ FULFILLMENT TAB ═══ -->
+            <section id="tab-fulfillment" class="tab-content hidden">
+                <!-- Header Banner -->
+                <div class="glass-card rounded-2xl p-6 mb-6 border border-slate-200/80 shadow-sm bg-gradient-to-br from-white via-indigo-50/20 to-platform-50/40">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-platform-600 text-white flex items-center justify-center shadow-lg shadow-platform-500/30 flex-shrink-0 text-xl">
+                                <i class="fas fa-boxes-packing"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-xl font-bold text-gray-900">Hub de Integración con Firebase Studio Fulfillment</h2>
+                                    <span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                        <i class="fas fa-circle text-[6px] text-emerald-500 animate-pulse"></i> LIVE API v1.0
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1 max-w-2xl leading-relaxed">
+                                    Conexión bidireccional en tiempo real entre la plataforma de comercio y el almacén logístico creado en Firebase Studio. 
+                                    Sincroniza inventario físico por SKU y transmite órdenes confirmadas contra entrega (COD) al instante.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 self-start md:self-auto">
+                            <button onclick="testFulfillmentPing()" class="bg-white border border-gray-200 hover:border-platform-500 text-gray-700 hover:text-platform-600 px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+                                <i class="fas fa-satellite-dish text-platform-600"></i> Probar Conexión
+                            </button>
+                            <a href="https://www.trendyrd.com/admin" target="_blank" class="bg-platform-600 hover:bg-platform-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+                                <i class="fas fa-external-link-alt"></i> Abrir TrendyRD Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Credentials & Stores Hub -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Config Card -->
+                    <div class="glass-card rounded-xl p-5 border border-gray-100 lg:col-span-1 shadow-sm">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4">
+                            <i class="fas fa-key text-amber-500"></i> Credenciales de la Tienda
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Seleccionar Tienda / Tenant</label>
+                                <select id="ffTenantSelect" onchange="switchFulfillmentTenant()" class="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:border-platform-500 outline-none">
+                                    <option value="https://www.trendyrd.com">TrendyRD (Test & Master Tenant)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Base Endpoint URL</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="ffBaseUrl" value="https://www.trendyrd.com/api/fulfillment" readonly class="w-full px-3 py-1.5 text-xs font-mono bg-gray-50 rounded-lg border border-gray-200 text-gray-700">
+                                    <button onclick="copyElementText('ffBaseUrl')" class="p-1.5 text-gray-400 hover:text-platform-600 transition" title="Copiar"><i class="fas fa-copy text-xs"></i></button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Fulfillment API Key (Header `x-fulfillment-api-key`)</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="password" id="ffApiKey" value="ff_live_trendyrd_369_synk" class="w-full px-3 py-1.5 text-xs font-mono bg-gray-50 rounded-lg border border-gray-200 text-gray-700">
+                                    <button onclick="toggleKeyVisibility()" class="p-1.5 text-gray-400 hover:text-gray-600 transition"><i class="fas fa-eye text-xs" id="ffEyeIcon"></i></button>
+                                    <button onclick="copyElementText('ffApiKey')" class="p-1.5 text-gray-400 hover:text-platform-600 transition" title="Copiar"><i class="fas fa-copy text-xs"></i></button>
+                                </div>
+                                <p class="text-[10px] text-gray-400 mt-1">Usa este token en cada solicitud desde Firebase Studio o Cloud Functions.</p>
+                            </div>
+                            <div class="pt-2 border-t border-gray-100 flex flex-col gap-2">
+                                <button onclick="testFetchOrders()" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium py-2 rounded-lg transition flex items-center justify-center gap-2">
+                                    <i class="fas fa-truck-ramp-box"></i> Ver Órdenes Confirmadas (Live)
+                                </button>
+                                <button onclick="testFetchInventory()" class="w-full bg-slate-100 hover:bg-slate-200 text-gray-800 text-xs font-medium py-2 rounded-lg transition flex items-center justify-center gap-2">
+                                    <i class="fas fa-barcode"></i> Ver Inventario y SKUs (Live)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live JSON Console -->
+                    <div class="glass-card rounded-xl p-5 border border-gray-100 lg:col-span-2 shadow-sm flex flex-col">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                                <i class="fas fa-terminal text-platform-600"></i> Consola de Respuesta API en Vivo
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <span id="ffConsoleStatus" class="text-[11px] text-gray-400">Listo para probar</span>
+                                <button onclick="clearFulfillmentConsole()" class="text-xs text-gray-400 hover:text-gray-600">Limpiar</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 bg-slate-950 text-slate-200 rounded-lg p-3 font-mono text-xs overflow-auto max-h-[320px] border border-slate-800" id="ffConsoleOutput">
+// Presiona "Probar Conexión", "Ver Órdenes Confirmadas" o "Ver Inventario"
+// para inspeccionar las respuestas directas desde la tienda.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Endpoints Documentation -->
+                <div class="glass-card rounded-xl p-5 border border-gray-100 shadow-sm mb-6">
+                    <h3 class="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-book-bookmark text-platform-600"></i> Catálogo Completo de Endpoints RESTful
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Endpoint 1 -->
+                        <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-blue-600 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded">GET</span>
+                                <span class="text-xs font-mono font-bold text-gray-800">/api/fulfillment/orders</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-2">Consulta todas las órdenes confirmadas pendientes de despacho por el almacén.</p>
+                            <div class="text-[11px] bg-slate-900 text-emerald-400 font-mono p-2.5 rounded-lg overflow-x-auto">
+curl -X GET "https://www.trendyrd.com/api/fulfillment/orders?status=confirmado_whatsapp" \<br>
+&nbsp;&nbsp;-H "x-fulfillment-api-key: ff_live_trendyrd_369_synk"
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 2 -->
+                        <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-amber-600 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded">POST</span>
+                                <span class="text-xs font-mono font-bold text-gray-800">/api/fulfillment/orders/:id/status</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-2">El almacén actualiza guía de tracking o estado (<code>en_ruta</code>, <code>entregado</code>, <code>devuelto</code>).</p>
+                            <div class="text-[11px] bg-slate-900 text-emerald-400 font-mono p-2.5 rounded-lg overflow-x-auto">
+curl -X POST "https://www.trendyrd.com/api/fulfillment/orders/ORD-123/status" \<br>
+&nbsp;&nbsp;-H "x-fulfillment-api-key: ff_live_trendyrd_369_synk" \<br>
+&nbsp;&nbsp;-d '{"status":"en_ruta","tracking_number":"METRO-8849","courier_name":"MetroPac"}'
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 3 -->
+                        <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-blue-600 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded">GET</span>
+                                <span class="text-xs font-mono font-bold text-gray-800">/api/fulfillment/inventory</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-2">Obtiene catálogo completo de productos con variantes (talla, color, SKU y stock actual).</p>
+                            <div class="text-[11px] bg-slate-900 text-emerald-400 font-mono p-2.5 rounded-lg overflow-x-auto">
+curl -X GET "https://www.trendyrd.com/api/fulfillment/inventory" \<br>
+&nbsp;&nbsp;-H "x-fulfillment-api-key: ff_live_trendyrd_369_synk"
+                            </div>
+                        </div>
+
+                        <!-- Endpoint 4 -->
+                        <div class="bg-gray-50 border border-gray-200/80 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="bg-purple-600 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded">POST</span>
+                                <span class="text-xs font-mono font-bold text-gray-800">/api/fulfillment/inventory/sync</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-2">El almacén Firebase ajusta existencias reales de variantes o productos en la tienda.</p>
+                            <div class="text-[11px] bg-slate-900 text-emerald-400 font-mono p-2.5 rounded-lg overflow-x-auto">
+curl -X POST "https://www.trendyrd.com/api/fulfillment/inventory/sync" \<br>
+&nbsp;&nbsp;-H "x-fulfillment-api-key: ff_live_trendyrd_369_synk" \<br>
+&nbsp;&nbsp;-d '{"updates":[{"sku":"POLO-M-BLK","stock":25},{"sku":"POLO-L-WHT","stock":12}]}'
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Integration Instructions with Firebase Studio -->
+                <div class="glass-card rounded-xl p-5 border border-gray-100 shadow-sm">
+                    <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-3">
+                        <i class="fas fa-fire text-amber-500"></i> ¿Cómo Conectar tu Proyecto de Firebase Studio?
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-gray-600 leading-relaxed">
+                        <div class="bg-white p-3 rounded-lg border border-gray-100 shadow-xs">
+                            <span class="font-bold text-platform-600 block mb-1">Paso 1: Cloud Function Webhook</span>
+                            Crea una función HTTP en Firebase Studio (ej. <code>onOrderDispatched</code>) y pega la URL en la configuración de la tienda. TrendyRD le despachará cada orden confirmada automáticamente.
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-gray-100 shadow-xs">
+                            <span class="font-bold text-platform-600 block mb-1">Paso 2: Sincronización de Stock</span>
+                            Configura un Cron Job o trigger de Firestore en Firebase Studio para que cada vez que cambie el inventario físico en el almacén, envíe un <code>POST /api/fulfillment/inventory/sync</code>.
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-gray-100 shadow-xs">
+                            <span class="font-bold text-platform-600 block mb-1">Paso 3: Notificación de Despacho</span>
+                            Cuando el chofer o courier recoja el paquete, Firebase llama a <code>POST /api/fulfillment/orders/:id/status</code> con el número de guía para que el cliente reciba su tracking.
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
-      </div>
-      <div class="cat-chips" id="catChips"></div>
-    </div>
+    </main>
 
-    <!-- Recent Activity -->
-    <div class="card">
-      <div class="section-title">🕐 Actividad Reciente</div>
-      <div class="activity-list" id="activityList">
-        <div style="color:var(--text2);font-size:13px;padding:20px 0;text-align:center;">Cargando...</div>
-      </div>
-    </div>
-  </div>
+    <!-- ═══ CREATE TENANT MODAL ═══ -->
+    <div id="createModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 slide-up">
+            <div class="flex items-center justify-between p-5 border-b border-gray-100">
+                <h3 class="font-bold text-gray-900">Create New Tenant</h3>
+                <button onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="createTenantForm" class="p-5 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Business Name *</label>
+                        <input type="text" id="ct_name" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="SynkDR">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Slug *</label>
+                        <input type="text" id="ct_slug" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="SynkDR">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Owner Email *</label>
+                        <input type="email" id="ct_email" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="owner@business.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Owner Name</label>
+                        <input type="text" id="ct_owner" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="John Doe">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Bot Name</label>
+                        <input type="text" id="ct_bot" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Sofía" value="Sofía">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Plan</label>
+                        <select id="ct_plan" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                            <option value="">Select plan...</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Store URL</label>
+                    <input type="url" id="ct_store" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="https://store.com">
+                </div>
+                <div class="border-t border-gray-100 pt-4">
+                    <p class="text-xs text-gray-400 mb-3"><i class="fas fa-database mr-1"></i> Supabase (optional — can configure later)</p>
+                    <div class="grid grid-cols-1 gap-3">
+                        <input type="url" id="ct_supa_url" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Supabase Project URL">
+                        <input type="text" id="ct_supa_key" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Supabase Anon Key">
+                    </div>
+                </div>
 
-  <!-- Row 4: Product Grid -->
-  <div class="card" style="margin-top:0;">
-    <div class="section-title" style="justify-content:space-between;">
-      <span>📦 Productos</span>
-      <span style="font-size:12px;color:var(--text2);" id="productCount"></span>
-    </div>
-    <div class="product-grid" id="productGrid">
-      <div style="color:var(--text2);font-size:13px;">Cargando productos...</div>
-    </div>
-  </div>
-</div>
+                <div id="createError" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3"></div>
 
-<!-- ═══════════════════ CHATS TAB ═══════════════════ -->
-<div class="tab-content" id="tab-chats">
-  <div class="chat-layout">
-    <div class="chat-sidebar">
-      <div class="chat-search">
-        <input type="text" placeholder="Buscar conversación..." id="chatSearchInput" oninput="filterConversations()">
-      </div>
-      <div id="convList"></div>
-    </div>
-    <div class="chat-main">
-      <div class="chat-empty" id="chatEmpty">Selecciona una conversación</div>
-      <div id="chatView" style="display:none;flex:1;display:flex;flex-direction:column;">
-        <div class="chat-header">
-          <span id="chatHeaderName">—</span>
-          <span id="chatHeaderState" class="conv-state"></span>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeCreateModal()" class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                    <button type="submit" id="createBtn" class="bg-platform-600 hover:bg-platform-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fas fa-plus"></i> Create Tenant
+                    </button>
+                </div>
+            </form>
         </div>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input-bar">
-          <input type="text" placeholder="Escribe un mensaje..." id="adminMsgInput" onkeydown="if(event.key==='Enter')sendAdminMsg()">
-          <button class="btn-send" onclick="sendAdminMsg()">Enviar</button>
+    </div>
+
+    <!-- ═══ TENANT DETAIL MODAL ═══ -->
+    <div id="detailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] overflow-y-auto slide-up">
+            <div class="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10">
+                <h3 class="font-bold text-gray-900" id="detailTitle">Tenant Details</h3>
+                <button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="detailContent" class="p-5">
+                <div class="text-center text-sm text-gray-400 py-8">Loading...</div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════ SETTINGS TAB ═══════════════════ -->
-<div class="tab-content" id="tab-settings">
-  <div class="settings-grid">
-    <!-- Personalidad -->
-    <div class="card">
-      <div class="section-title">🎭 Personalidad de Sofía</div>
-      <div class="setting-row">
-        <label>System Prompt</label>
-        <textarea id="settPrompt" rows="12" placeholder="Cargando..."></textarea>
-      </div>
-      <div class="setting-row">
-        <label>Nombre del Bot</label>
-        <input type="text" id="settBotName" placeholder="Sofía">
-      </div>
-      <div class="setting-row">
-        <label>Nombre de la Tienda</label>
-        <input type="text" id="settStoreName" placeholder="SynkDR">
-      </div>
-      <button class="btn-save" onclick="saveSettings()">Guardar Cambios</button>
     </div>
 
-    <!-- Políticas -->
-    <div class="card">
-      <div class="section-title">📋 Políticas de la Tienda</div>
-      <div class="setting-row">
-        <label>Política de Envío</label>
-        <textarea id="settShipping" rows="3" placeholder="Ej: Envío gratis en pedidos mayores a RD$2,000..."></textarea>
-      </div>
-      <div class="setting-row">
-        <label>Política de Devoluciones</label>
-        <textarea id="settReturns" rows="3" placeholder="Ej: 10 días para devoluciones..."></textarea>
-      </div>
-      <div class="setting-row">
-        <label>Política de Pago</label>
-        <textarea id="settPayment" rows="3" placeholder="Ej: Contra entrega, transferencia..."></textarea>
-      </div>
-      <button class="btn-save" onclick="savePolicies()">Guardar Políticas</button>
-    </div>
-
-    <!-- Notificaciones -->
-    <div class="card">
-      <div class="section-title">🔔 Notificaciones (Telegram)</div>
-      <div class="setting-row">
-        <label>Bot Token</label>
-        <input type="text" id="settTgToken" placeholder="123456:ABC-DEF...">
-      </div>
-      <div class="setting-row">
-        <label>Chat ID</label>
-        <input type="text" id="settTgChat" placeholder="-1001234567890">
-      </div>
-      <button class="btn-save" onclick="saveTelegram()">Guardar Telegram</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<script>
-  // ── Auth ──
-  const SUPABASE_URL = 'https://votyvfjbrjmcghekaatk.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvdHl2ZmpicmptY2doZWthYXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTA3NDksImV4cCI6MjA4Nzk2Njc0OX0.-vo_fUfBzty-mPXn61tv-v8azBcXeL3nF0JBEgYopK0';
-  const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  let _accessToken = null;
-  let _conversations = [];
-  let _activeConvId = null;
-
-  // ── Init ──
-  (async () => {
-    const { data: { session } } = await sbClient.auth.getSession();
-    if (!session) { window.location.replace('/login'); return; }
-    _accessToken = session.access_token;
-
-    sbClient.auth.onAuthStateChange((event, session) => {
-      if (event === 'TOKEN_REFRESHED' && session) _accessToken = session.access_token;
-      if (event === 'SIGNED_OUT') window.location.replace('/login');
-    });
-
-    initDashboard();
-  })();
-
-  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? ''
-    : 'https://srv806559.hstgr.cloud/sofia-api';
-
-  async function fetchAPI(path, opts = {}) {
-    const headers = { 'Authorization': `Bearer ${_accessToken}`, 'Content-Type': 'application/json', ...opts.headers };
-    let res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
-    if (res.status === 401) {
-      const { data: { session } } = await sbClient.auth.refreshSession();
-      if (session) {
-        _accessToken = session.access_token;
-        headers['Authorization'] = `Bearer ${_accessToken}`;
-        res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
-      } else {
-        window.location.replace('/login');
-        return null;
-      }
-    }
-    if (!res.ok) return null;
-    return res.json();
-  }
-
-  // ── Tab Switching ──
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-      if (btn.dataset.tab === 'chats') loadConversations();
-      if (btn.dataset.tab === 'settings') loadSettings();
-    });
-  });
-
-  // ═══════════════════ DASHBOARD ═══════════════════
-  async function initDashboard() {
-    loadLiveStats();
-    loadUsage();
-    loadCatalogStats();
-    loadProducts();
-    loadConversationsPreview();
-  }
-
-  async function loadLiveStats() {
-    const data = await fetchAPI('/admin/api/analytics/live');
-    if (!data) return;
-    document.getElementById('kpi-convs').textContent = data.conversations_started || 0;
-    document.getElementById('kpi-convs-sub').textContent = `${data.messages_total || 0} mensajes hoy`;
-    document.getElementById('kpi-resolution').textContent = (data.resolution_rate_pct || 0) + '%';
-    document.getElementById('kpi-resolution-sub').textContent = `${data.conversations_resolved || 0} resueltas`;
-    document.getElementById('kpi-response').textContent = data.avg_response_ms ? (data.avg_response_ms / 1000).toFixed(1) + 's' : '—';
-    document.getElementById('kpi-response-sub').textContent = `${data.pct_under_3s || 0}% bajo 3s`;
-    document.getElementById('kpi-escalations').textContent = data.conversations_escalated || 0;
-    document.getElementById('kpi-escalations-sub').textContent = 'hoy';
-
-    // Performance bars
-    setBar('perf-resolution', data.resolution_rate_pct || 0);
-    setBar('perf-under3s', data.pct_under_3s || 0);
-    setBar('perf-tier1', data.tier1_pct || 0);
-    setBar('perf-tier2', data.tier2_pct || 0);
-  }
-
-  function setBar(id, pct) {
-    document.getElementById(id).style.width = pct + '%';
-    document.getElementById(id + '-val').textContent = pct + '%';
-  }
-
-  async function loadUsage() {
-    const data = await fetchAPI('/admin/api/usage');
-    if (!data) return;
-    const pct = data.usage_pct || 0;
-    document.getElementById('usagePct').textContent = pct + '%';
-    document.getElementById('usageLabel').textContent = `${data.month_conversations} / ${data.plan_limit} conversaciones`;
-    const circle = document.getElementById('usageCircle');
-    const circumference = 326.7;
-    circle.style.strokeDashoffset = circumference - (circumference * pct / 100);
-    if (pct > 80) circle.setAttribute('stroke', 'var(--red)');
-    else if (pct > 60) circle.setAttribute('stroke', 'var(--yellow)');
-  }
-
-  async function loadCatalogStats() {
-    const data = await fetchAPI('/admin/api/stats');
-    if (!data) return;
-    const cat = data.catalog || {};
-    document.getElementById('cat-total').textContent = cat.total_products || 0;
-    document.getElementById('cat-available').textContent = cat.available || 0;
-    const chips = document.getElementById('catChips');
-    chips.innerHTML = '';
-    if (cat.categories) {
-      Object.entries(cat.categories).forEach(([name, count]) => {
-        chips.innerHTML += `<div class="cat-chip">${name} <span class="count">${count}</span></div>`;
-      });
-    }
-  }
-
-  async function loadProducts() {
-    const data = await fetchAPI('/admin/api/catalog');
-    if (!data || !data.products) return;
-    const grid = document.getElementById('productGrid');
-    document.getElementById('productCount').textContent = data.products.length + ' productos';
-    if (data.products.length === 0) {
-      grid.innerHTML = '<div style="color:var(--text2);font-size:13px;">No hay productos sincronizados</div>';
-      return;
-    }
-    grid.innerHTML = data.products.map(p => `
-      <div class="product-card">
-        <img class="product-img" src="${escapeHtml(p.image_url || '')}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'">
-        <div class="product-info">
-          <div class="product-name" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div>
-          <div class="product-meta">
-            <span class="product-price">${p.price_min ? (p.currency === 'DOP' ? 'RD$' : '$') + Number(p.price_min).toLocaleString() : '—'}</span>
-            <span class="product-badge ${p.available ? 'badge-available' : 'badge-unavailable'}">${p.available ? 'Disponible' : 'Agotado'}</span>
-          </div>
+    <!-- ═══ PLAN EDIT/CREATE MODAL ═══ -->
+    <div id="planModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 slide-up">
+            <div class="flex items-center justify-between p-5 border-b border-gray-100">
+                <h3 class="font-bold text-gray-900" id="planModalTitle">New Plan</h3>
+                <button onclick="closePlanModal()" class="text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="planForm" class="p-5 space-y-4">
+                <input type="hidden" id="pf_id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Internal Name *</label>
+                        <input type="text" id="pf_name" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="starter">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Display Name *</label>
+                        <input type="text" id="pf_display" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Starter">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Price (USD/mo) *</label>
+                        <input type="number" step="0.01" id="pf_price" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="49">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Conversations/mo *</label>
+                        <input type="number" id="pf_convs" required class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Max Products</label>
+                        <input type="number" id="pf_products" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="100" value="100">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Features</label>
+                    <div class="max-h-64 overflow-y-auto border border-gray-100 rounded-lg p-3 space-y-3" id="featureCheckboxes">
+                        <!-- Populated by initFeatureCheckboxes() after constants load -->
+                    </div>
+                </div>
+                <div id="planError" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3"></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closePlanModal()" class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                    <button type="submit" id="planBtn" class="bg-platform-600 hover:bg-platform-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fas fa-save"></i> <span id="planBtnText">Save Plan</span>
+                    </button>
+                </div>
+            </form>
         </div>
-      </div>
-    `).join('');
-  }
+    </div>
 
-  async function loadConversationsPreview() {
-    const data = await fetchAPI('/admin/api/conversations?limit=10');
-    if (!data || !data.conversations) return;
-    const list = document.getElementById('activityList');
-    const badge = document.getElementById('chatBadge');
-    const active = data.conversations.filter(c => c.state !== 'closed');
-    badge.textContent = active.length;
-
-    if (data.conversations.length === 0) {
-      list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:20px 0;text-align:center;">Sin actividad reciente</div>';
-      return;
-    }
-    list.innerHTML = data.conversations.slice(0, 8).map(c => {
-      const name = c.customer?.name || c.customer?.phone || 'Anónimo';
-      const icon = c.state === 'escalated' ? '🚨' : c.state === 'closed' ? '✅' : '💬';
-      const iconBg = c.state === 'escalated' ? 'var(--yellow-bg)' : c.state === 'closed' ? 'var(--green-bg)' : 'var(--blue-bg)';
-      const time = c.last_message_at ? timeAgo(c.last_message_at) : '';
-      return `<div class="activity-item">
-        <div class="activity-icon" style="background:${iconBg}">${icon}</div>
-        <div style="flex:1">
-          <div class="activity-text"><strong>${escapeHtml(name)}</strong> — ${escapeHtml(c.state || 'activo')}</div>
-          <div class="activity-time">${time} · ${c.channel || 'web'}</div>
+    <!-- ═══ TENANT EDIT MODAL ═══ -->
+    <div id="editTenantModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto slide-up">
+            <div class="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10">
+                <h3 class="font-bold text-gray-900" id="editTenantTitle">Edit Tenant</h3>
+                <button onclick="closeEditTenantModal()" class="text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="editTenantForm" class="p-5 space-y-4">
+                <input type="hidden" id="et_id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Name</label>
+                        <input type="text" id="et_name" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Bot Name</label>
+                        <input type="text" id="et_bot" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                        <select id="et_status" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                            <option value="active">Active</option>
+                            <option value="setup">Setup</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Plan</label>
+                        <select id="et_plan" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                            <option value="">No plan</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Store URL</label>
+                    <input type="url" id="et_store" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                </div>
+                <div class="border-t border-gray-100 pt-4">
+                    <p class="text-xs text-gray-400 mb-3"><i class="fas fa-robot mr-1"></i> AI Configuration</p>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Provider</label>
+                            <select id="et_ai_provider" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                                <option value="gemini">Gemini</option>
+                                <option value="anthropic">Anthropic</option>
+                                <option value="openai">OpenAI</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Temperature</label>
+                            <input type="number" step="0.1" min="0" max="2" id="et_ai_temp" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Max Tokens</label>
+                            <input type="number" id="et_ai_tokens" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-gray-100 pt-4">
+                    <p class="text-xs text-gray-400 mb-3"><i class="fas fa-database mr-1"></i> Supabase</p>
+                    <div class="space-y-3">
+                        <input type="url" id="et_supa_url" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Supabase URL">
+                        <input type="text" id="et_supa_key" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-platform-500 outline-none" placeholder="Supabase Anon Key">
+                    </div>
+                </div>
+                <div id="editTenantError" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3"></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditTenantModal()" class="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">Cancel</button>
+                    <button type="submit" id="editTenantBtn" class="bg-platform-600 hover:bg-platform-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
         </div>
-      </div>`;
-    }).join('');
-  }
+    </div>
 
-  async function syncCatalog() {
-    const btn = event.target;
-    btn.disabled = true; btn.textContent = 'Sincronizando...';
-    const data = await fetchAPI('/admin/api/sync', { method: 'POST' });
-    if (data && data.status === 'ok') {
-      showToast(`✅ ${data.synced} productos sincronizados`);
-      loadCatalogStats();
-      loadProducts();
-    } else {
-      showToast('❌ Error al sincronizar');
-    }
-    btn.disabled = false; btn.textContent = '↻ Sincronizar';
-  }
+    <script>
+    // ═══════════════════════════════════════════════════════════
+    // AUTH & API
+    // ═══════════════════════════════════════════════════════════
+    const SUPABASE_URL = 'https://votyvfjbrjmcghekaatk.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvdHl2ZmpicmptY2doZWthYXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTA3NDksImV4cCI6MjA4Nzk2Njc0OX0.-vo_fUfBzty-mPXn61tv-v8azBcXeL3nF0JBEgYopK0';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // ═══════════════════ CHATS ═══════════════════
-  async function loadConversations() {
-    const data = await fetchAPI('/admin/api/conversations?limit=50');
-    if (!data || !data.conversations) return;
-    _conversations = data.conversations;
-    renderConvList(_conversations);
-  }
+    let token = null;
+    let allTenants = [];
+    let allPlans = [];
 
-  function renderConvList(list) {
-    const el = document.getElementById('convList');
-    if (list.length === 0) {
-      el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text2);font-size:13px;">No hay conversaciones</div>';
-      return;
-    }
-    el.innerHTML = list.map(c => {
-      const name = c.customer?.name || c.customer?.phone || 'Anónimo';
-      const stateClass = c.state === 'escalated' ? 'state-escalated' : c.state === 'closed' ? 'state-closed' : 'state-active';
-      const time = c.last_message_at ? timeAgo(c.last_message_at) : '';
-      return `<div class="conv-item ${c.id === _activeConvId ? 'active' : ''}" onclick="openConv('${c.id}')">
-        <span class="conv-time">${time}</span>
-        <div class="conv-name">${escapeHtml(name)}</div>
-        <span class="conv-state ${stateClass}">${c.state || 'activo'}</span>
-      </div>`;
-    }).join('');
-  }
-
-  function filterConversations() {
-    const q = document.getElementById('chatSearchInput').value.toLowerCase();
-    const filtered = _conversations.filter(c => {
-      const name = (c.customer?.name || c.customer?.phone || '').toLowerCase();
-      return name.includes(q);
-    });
-    renderConvList(filtered);
-  }
-
-  async function openConv(convId) {
-    _activeConvId = convId;
-    document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-
-    document.getElementById('chatEmpty').style.display = 'none';
-    document.getElementById('chatView').style.display = 'flex';
-
-    const conv = _conversations.find(c => c.id === convId);
-    if (conv) {
-      document.getElementById('chatHeaderName').textContent = conv.customer?.name || conv.customer?.phone || 'Anónimo';
-      const stEl = document.getElementById('chatHeaderState');
-      stEl.textContent = conv.state || 'activo';
-      stEl.className = 'conv-state ' + (conv.state === 'escalated' ? 'state-escalated' : conv.state === 'closed' ? 'state-closed' : 'state-active');
+    async function getToken() {
+        if (token) return token;
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { window.location.href = '/superadmin/login'; return null; }
+        token = session.access_token;
+        return token;
     }
 
-    const data = await fetchAPI(`/admin/api/conversation/${convId}`);
-    if (!data || !data.messages) return;
-    const el = document.getElementById('chatMessages');
-    el.innerHTML = data.messages.map(m => {
-      const cls = m.role === 'customer' ? 'msg-customer' : m.role === 'admin' ? 'msg-admin' : 'msg-bot';
-      const time = m.created_at ? new Date(m.created_at).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : '';
-      return `<div class="msg ${cls}">
-        ${escapeHtml(m.content)}
-        <div class="msg-time">${time}</div>
-      </div>`;
-    }).join('');
-    el.scrollTop = el.scrollHeight;
-  }
+    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? ''
+        : 'https://srv806559.hstgr.cloud/sofia-api';
 
-  async function sendAdminMsg() {
-    if (!_activeConvId) return;
-    const input = document.getElementById('adminMsgInput');
-    const msg = input.value.trim();
-    if (!msg) return;
-    input.value = '';
+    async function api(path, method = 'GET', body = null) {
+        const t = await getToken();
+        if (!t) return null;
+        const fullUrl = path.startsWith('http') ? path : `${API_BASE}${path}`;
+        const opts = { method, headers: { 'Authorization': `Bearer ${t}`, 'Content-Type': 'application/json' } };
+        if (body) opts.body = JSON.stringify(body);
+        const r = await fetch(fullUrl, opts);
+        if (r.status === 401 || r.status === 403) {
+            // Try refresh
+            const { data: { session } } = await sb.auth.refreshSession();
+            if (!session) { window.location.href = '/superadmin/login'; return null; }
+            token = session.access_token;
+            opts.headers['Authorization'] = `Bearer ${token}`;
+            const r2 = await fetch(fullUrl, opts);
+            if (!r2.ok) throw new Error(`API ${r2.status}`);
+            return r2.json();
+        }
+        if (!r.ok) {
+            const err = await r.json().catch(() => ({}));
+            throw new Error(err.detail || `API error ${r.status}`);
+        }
+        return r.json();
+    }
 
-    // Optimistic update
-    const el = document.getElementById('chatMessages');
-    el.innerHTML += `<div class="msg msg-admin">${escapeHtml(msg)}<div class="msg-time">ahora</div></div>`;
-    el.scrollTop = el.scrollHeight;
+    async function logout() {
+        await sb.auth.signOut();
+        window.location.href = '/superadmin/login';
+    }
 
-    await fetchAPI(`/admin/api/conversation/${_activeConvId}/send`, {
-      method: 'POST',
-      body: JSON.stringify({ message: msg })
-    });
-  }
-
-  // ═══════════════════ SETTINGS ═══════════════════
-  async function loadSettings() {
-    const data = await fetchAPI('/admin/api/settings');
-    if (!data || !data.settings) return;
-    const s = data.settings;
-    document.getElementById('settPrompt').value = s.system_prompt || '';
-    document.getElementById('settBotName').value = s.bot_name || 'Sofía';
-    document.getElementById('settStoreName').value = s.store_name || 'SynkDR';
-    document.getElementById('settShipping').value = s.shipping_policy || '';
-    document.getElementById('settReturns').value = s.returns_policy || '';
-    document.getElementById('settPayment').value = s.payment_policy || '';
-    document.getElementById('settTgToken').value = s.telegram_bot_token || '';
-    document.getElementById('settTgChat').value = s.telegram_chat_id || '';
-  }
-
-  async function saveSettings() {
-    const settings = {
-      system_prompt: document.getElementById('settPrompt').value,
-      bot_name: document.getElementById('settBotName').value,
-      store_name: document.getElementById('settStoreName').value,
+    // ═══════════════════════════════════════════════════════════
+    // NAVIGATION
+    // ═══════════════════════════════════════════════════════════
+    const tabConfig = {
+        overview: { title: 'Platform Overview', subtitle: 'All tenants, real-time stats', load: loadOverview },
+        tenants: { title: 'Tenant Management', subtitle: 'Create, configure, and monitor tenants', load: loadTenants },
+        plans: { title: 'Pricing Plans', subtitle: 'Manage subscription tiers', load: loadPlans },
+        logs: { title: 'Activity Logs', subtitle: 'Platform audit trail', load: loadLogs },
+        fulfillment: { title: 'Fulfillment & Logistics Hub', subtitle: 'Firebase Studio integration, multi-tenant inventory & confirmed orders sync', load: loadFulfillment },
     };
-    const data = await fetchAPI('/admin/api/settings/bulk', { method: 'POST', body: JSON.stringify({ settings }) });
-    showToast(data?.status === 'ok' ? '✅ Personalidad guardada' : '❌ Error al guardar');
-  }
 
-  async function savePolicies() {
-    const settings = {
-      shipping_policy: document.getElementById('settShipping').value,
-      returns_policy: document.getElementById('settReturns').value,
-      payment_policy: document.getElementById('settPayment').value,
+    let currentTab = 'overview';
+
+    function showTab(name) {
+        currentTab = name;
+        // Hide all, show selected
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`tab-${name}`).classList.remove('hidden');
+        // Nav active state
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('bg-slate-800', btn.dataset.tab === name);
+            btn.classList.toggle('text-white', btn.dataset.tab === name);
+        });
+        // Header
+        const cfg = tabConfig[name];
+        document.getElementById('pageTitle').textContent = cfg.title;
+        document.getElementById('pageSubtitle').textContent = cfg.subtitle;
+        cfg.load();
+    }
+
+    function refreshCurrentTab() { tabConfig[currentTab].load(); }
+
+    // ═══════════════════════════════════════════════════════════
+    // OVERVIEW TAB
+    // ═══════════════════════════════════════════════════════════
+    async function loadOverview() {
+        try {
+            const data = await api('/superadmin/api/overview');
+            if (!data) return;
+            const o = data.overview;
+            allPlans = data.plans || [];
+
+            document.getElementById('kpi-tenants').textContent = o.total_tenants;
+            document.getElementById('kpi-active').textContent = o.active_tenants;
+            document.getElementById('kpi-setup').textContent = o.setup_tenants;
+            document.getElementById('kpi-conversations').textContent = o.total_conversations.toLocaleString();
+            document.getElementById('kpi-messages').textContent = o.total_messages.toLocaleString();
+            document.getElementById('kpi-online').textContent = `${o.online_tenants}/${o.active_tenants}`;
+
+            // Plans
+            if (allPlans.length) {
+                document.getElementById('plansOverview').innerHTML = allPlans.map(p => `
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <div class="text-sm font-semibold text-gray-900">${p.display_name}</div>
+                        <div class="text-2xl font-bold text-platform-600 mt-1">$${p.price_usd}</div>
+                        <div class="text-xs text-gray-400 mt-1">${p.max_conversations_mo.toLocaleString()} conv/mo</div>
+                    </div>
+                `).join('');
+            }
+
+            // Recent tenants
+            const tData = await api('/superadmin/api/tenants');
+            if (tData && tData.tenants.length) {
+                allTenants = tData.tenants;
+                document.getElementById('recentTenants').innerHTML = tData.tenants.slice(0, 5).map(t => `
+                    <div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-platform-100 flex items-center justify-center text-platform-700 text-xs font-bold">
+                                ${(t.name || '?').substring(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">${esc(t.name)}</div>
+                                <div class="text-xs text-gray-400">${esc(t.slug)} · ${esc(t.owner_email || '')}</div>
+                            </div>
+                        </div>
+                        <span class="status-${t.status} text-xs font-medium px-2 py-0.5 rounded-full">${t.status}</span>
+                    </div>
+                `).join('');
+            } else {
+                document.getElementById('recentTenants').innerHTML = '<div class="text-center text-sm text-gray-400 py-6">No tenants yet. <button onclick="showTab(\'tenants\'); openCreateModal()" class="text-platform-600 hover:underline">Create one</button></div>';
+            }
+        } catch (e) {
+            console.error('Overview load error:', e);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TENANTS TAB
+    // ═══════════════════════════════════════════════════════════
+    async function loadTenants() {
+        try {
+            const data = await api('/superadmin/api/tenants');
+            if (!data) return;
+            allTenants = data.tenants;
+            renderTenantsTable(allTenants);
+
+            // Populate plan select in create modal
+            if (!allPlans.length) {
+                const p = await api('/superadmin/api/plans');
+                if (p) allPlans = p.plans;
+            }
+            const sel = document.getElementById('ct_plan');
+            sel.innerHTML = '<option value="">Select plan...</option>' +
+                allPlans.map(p => `<option value="${p.id}">${p.display_name} ($${p.price_usd}/mo)</option>`).join('');
+        } catch (e) {
+            console.error('Tenants load error:', e);
+        }
+    }
+
+    function renderTenantsTable(tenants) {
+        const tbody = document.getElementById('tenantsTable');
+        if (!tenants.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-sm text-gray-400 py-8">No tenants found</td></tr>';
+            return;
+        }
+        tbody.innerHTML = tenants.map(t => {
+            const plan = t.plan ? t.plan.display_name : '—';
+            const price = t.plan ? `$${t.plan.price_usd}` : '—';
+            return `
+            <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition cursor-pointer" onclick="openTenantDetail('${t.id}')">
+                <td class="px-5 py-3.5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-lg bg-platform-100 flex items-center justify-center text-platform-700 text-xs font-bold">
+                            ${(t.name || '?').substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">${esc(t.name)}</div>
+                            <div class="text-xs text-gray-400">${esc(t.slug)}${t.store_url ? ' · ' + esc(t.store_url) : ''}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-5 py-3.5 text-sm text-gray-600">${plan}</td>
+                <td class="px-5 py-3.5">
+                    <span class="status-${t.status} text-xs font-medium px-2.5 py-1 rounded-full">${t.status}</span>
+                </td>
+                <td class="px-5 py-3.5">
+                    <span class="status-${t.billing_status || 'trial'} text-xs font-medium px-2.5 py-1 rounded-full">${t.billing_status || 'trial'}</span>
+                </td>
+                <td class="px-5 py-3.5 text-center text-sm text-gray-600">—</td>
+                <td class="px-5 py-3.5 text-right">
+                    <button onclick="event.stopPropagation(); openTenantDetail('${t.id}')" class="text-gray-400 hover:text-platform-600 transition" title="View details">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function filterTenants() {
+        const q = document.getElementById('tenantSearch').value.toLowerCase();
+        const statusFilter = document.getElementById('tenantFilter').value;
+        let filtered = allTenants;
+        if (q) filtered = filtered.filter(t => t.name.toLowerCase().includes(q) || (t.slug || '').toLowerCase().includes(q) || (t.owner_email || '').toLowerCase().includes(q));
+        if (statusFilter) filtered = filtered.filter(t => t.status === statusFilter);
+        renderTenantsTable(filtered);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TENANT DETAIL
+    // ═══════════════════════════════════════════════════════════
+    async function openTenantDetail(id) {
+        document.getElementById('detailModal').classList.remove('hidden');
+        document.getElementById('detailContent').innerHTML = '<div class="text-center text-sm text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i>Loading tenant details...</div>';
+
+        try {
+            const data = await api(`/superadmin/api/tenants/${id}`);
+            if (!data) return;
+            const t = data.tenant;
+            const s = data.live_stats || {};
+
+            document.getElementById('detailTitle').textContent = t.name;
+            document.getElementById('detailContent').innerHTML = `
+                <div class="space-y-5">
+                    <!-- Status & Plan -->
+                    <div class="flex items-center gap-3">
+                        <span class="status-${t.status} text-sm font-medium px-3 py-1 rounded-full">${t.status}</span>
+                        <span class="status-${t.billing_status || 'trial'} text-sm font-medium px-3 py-1 rounded-full">${t.billing_status || 'trial'}</span>
+                        ${t.plan ? `<span class="bg-platform-50 text-platform-700 text-sm font-medium px-3 py-1 rounded-full">${t.plan.display_name}</span>` : ''}
+                    </div>
+
+                    <!-- Live Stats -->
+                    ${s.status ? `
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <div class="text-lg font-bold text-gray-900">${(s.total_conversations || 0).toLocaleString()}</div>
+                            <div class="text-[10px] text-gray-500 uppercase">Conversations</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <div class="text-lg font-bold text-gray-900">${(s.total_messages || 0).toLocaleString()}</div>
+                            <div class="text-[10px] text-gray-500 uppercase">Messages</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <div class="text-lg font-bold text-gray-900">${(s.total_products || 0).toLocaleString()}</div>
+                            <div class="text-[10px] text-gray-500 uppercase">Products</div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <div class="text-lg font-bold ${s.status === 'online' ? 'text-green-600' : 'text-red-500'}">${s.status === 'online' ? '● Online' : '● Offline'}</div>
+                            <div class="text-[10px] text-gray-500 uppercase">Bot Status</div>
+                        </div>
+                    </div>` : ''}
+
+                    <!-- Info Grid -->
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Owner</div>
+                            <div class="text-gray-900">${esc(t.owner_name || '—')}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Email</div>
+                            <div class="text-gray-900">${esc(t.owner_email || '—')}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Slug</div>
+                            <div class="text-gray-900 font-mono text-xs">${esc(t.slug)}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Bot Name</div>
+                            <div class="text-gray-900">${esc(t.bot_name || 'Sofía')}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Store URL</div>
+                            <div class="text-gray-900">${t.store_url ? `<a href="${esc(t.store_url)}" target="_blank" class="text-platform-600 hover:underline">${esc(t.store_url)}</a>` : '—'}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1">Created</div>
+                            <div class="text-gray-900">${new Date(t.created_at).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+
+                    <!-- AI Config -->
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">AI Configuration</h4>
+                        <div class="grid grid-cols-3 gap-3 text-sm">
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <div class="text-[10px] text-gray-400">Provider</div>
+                                <div class="font-medium">${esc(t.ai_provider || 'gemini')}</div>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <div class="text-[10px] text-gray-400">Model</div>
+                                <div class="font-medium text-xs">${esc(t.ai_model || 'default')}</div>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-3">
+                                <div class="text-[10px] text-gray-400">Temperature</div>
+                                <div class="font-medium">${t.ai_temperature ?? 0.3}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Supabase -->
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Database</h4>
+                        <div class="bg-gray-50 rounded-lg p-3 text-xs font-mono text-gray-600">
+                            ${t.supabase_url ? esc(t.supabase_url) : '<span class="text-amber-600">Not configured</span>'}
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="border-t border-gray-100 pt-4 flex gap-3">
+                        <button onclick="openEditTenantModal('${t.id}')" class="px-4 py-2 rounded-lg text-sm bg-platform-50 text-platform-700 hover:bg-platform-100 transition"><i class="fas fa-pen mr-1"></i> Edit</button>
+                        ${t.status === 'active' ? `<button onclick="toggleTenantStatus('${t.id}', 'suspended')" class="px-4 py-2 rounded-lg text-sm bg-red-50 text-red-700 hover:bg-red-100 transition"><i class="fas fa-pause mr-1"></i> Suspend</button>` : ''}
+                        ${t.status === 'suspended' ? `<button onclick="toggleTenantStatus('${t.id}', 'active')" class="px-4 py-2 rounded-lg text-sm bg-green-50 text-green-700 hover:bg-green-100 transition"><i class="fas fa-play mr-1"></i> Activate</button>` : ''}
+                        ${t.status === 'setup' ? `<button onclick="toggleTenantStatus('${t.id}', 'active')" class="px-4 py-2 rounded-lg text-sm bg-green-50 text-green-700 hover:bg-green-100 transition"><i class="fas fa-check mr-1"></i> Activate</button>` : ''}
+                        <button onclick="if(confirm('Delete this tenant?')) deleteTenant('${t.id}')" class="px-4 py-2 rounded-lg text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition"><i class="fas fa-trash mr-1"></i> Delete</button>
+                    </div>
+                </div>
+            `;
+        } catch (e) {
+            document.getElementById('detailContent').innerHTML = `<div class="text-center text-sm text-red-500 py-8">Error loading details: ${esc(e.message)}</div>`;
+        }
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').classList.add('hidden');
+    }
+
+    async function toggleTenantStatus(id, newStatus) {
+        try {
+            await api(`/superadmin/api/tenants/${id}`, 'PUT', { status: newStatus });
+            closeDetailModal();
+            loadTenants();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    async function deleteTenant(id) {
+        try {
+            await api(`/superadmin/api/tenants/${id}`, 'DELETE');
+            closeDetailModal();
+            loadTenants();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CREATE TENANT
+    // ═══════════════════════════════════════════════════════════
+    function openCreateModal() {
+        document.getElementById('createModal').classList.remove('hidden');
+        document.getElementById('createError').classList.add('hidden');
+        document.getElementById('createTenantForm').reset();
+        document.getElementById('ct_bot').value = 'Sofía';
+    }
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.add('hidden');
+    }
+
+    // Auto-generate slug from name
+    document.getElementById('ct_name').addEventListener('input', function() {
+        const slug = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        document.getElementById('ct_slug').value = slug;
+    });
+
+    document.getElementById('createTenantForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('createBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        document.getElementById('createError').classList.add('hidden');
+
+        const payload = {
+            name: document.getElementById('ct_name').value.trim(),
+            slug: document.getElementById('ct_slug').value.trim(),
+            owner_email: document.getElementById('ct_email').value.trim(),
+            owner_name: document.getElementById('ct_owner').value.trim(),
+            bot_name: document.getElementById('ct_bot').value.trim() || 'Sofía',
+            store_url: document.getElementById('ct_store').value.trim(),
+        };
+        const planId = document.getElementById('ct_plan').value;
+        if (planId) payload.plan_id = planId;
+        const supaUrl = document.getElementById('ct_supa_url').value.trim();
+        const supaKey = document.getElementById('ct_supa_key').value.trim();
+        if (supaUrl) payload.supabase_url = supaUrl;
+        if (supaKey) payload.supabase_anon_key = supaKey;
+
+        try {
+            await api('/superadmin/api/tenants', 'POST', payload);
+            closeCreateModal();
+            loadTenants();
+            if (currentTab === 'overview') loadOverview();
+        } catch (e) {
+            const errDiv = document.getElementById('createError');
+            errDiv.textContent = e.message;
+            errDiv.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus"></i> Create Tenant';
+        }
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // PLANS TAB
+    // ═══════════════════════════════════════════════════════════
+    const FEATURE_KEYS = [
+        // ── Channels ──
+        'webchat','whatsapp','voice',
+        // ── Core AI ──
+        'ai_conversational','smart_catalog','custom_persona','spanish_localization',
+        // ── Sales ──
+        'in_chat_checkout','smart_upsell','abandoned_cart_recovery','price_drop_alerts',
+        // ── Engagement ──
+        'customer_memory','visual_search','reengagement',
+        // ── Operations ──
+        'analytics','escalation','shipping_notifications','discount_codes',
+        // ── Platform ──
+        'api_access','custom_domain','dedicated_support'
+    ];
+
+    const FEATURE_LABELS = {
+        webchat: 'Web Chat', whatsapp: 'WhatsApp', voice: 'Voice Notes',
+        ai_conversational: 'AI Conversacional', smart_catalog: 'Smart Catalog Sync', custom_persona: 'Custom Persona', spanish_localization: 'Spanish Localization',
+        in_chat_checkout: 'In-Chat Checkout (COD)', smart_upsell: 'Smart Upsell', abandoned_cart_recovery: 'Abandoned Cart Recovery', price_drop_alerts: 'Price Drop Alerts',
+        customer_memory: 'Customer Memory', visual_search: 'Visual Product Search', reengagement: 'Re-engagement Automático',
+        analytics: 'Analytics Dashboard', escalation: 'Smart Escalation', shipping_notifications: 'Shipping Notifications', discount_codes: 'Discount Codes',
+        api_access: 'API Access', custom_domain: 'Custom Domain', dedicated_support: 'Dedicated Support'
     };
-    const data = await fetchAPI('/admin/api/settings/bulk', { method: 'POST', body: JSON.stringify({ settings }) });
-    showToast(data?.status === 'ok' ? '✅ Políticas guardadas' : '❌ Error al guardar');
-  }
 
-  async function saveTelegram() {
-    const settings = {
-      telegram_bot_token: document.getElementById('settTgToken').value,
-      telegram_chat_id: document.getElementById('settTgChat').value,
+    const FEATURE_GROUPS = {
+        'Channels': ['webchat','whatsapp','voice'],
+        'Core AI': ['ai_conversational','smart_catalog','custom_persona','spanish_localization'],
+        'Sales': ['in_chat_checkout','smart_upsell','abandoned_cart_recovery','price_drop_alerts'],
+        'Engagement': ['customer_memory','visual_search','reengagement'],
+        'Operations': ['analytics','escalation','shipping_notifications','discount_codes'],
+        'Platform': ['api_access','custom_domain','dedicated_support'],
     };
-    const data = await fetchAPI('/admin/api/settings/bulk', { method: 'POST', body: JSON.stringify({ settings }) });
-    showToast(data?.status === 'ok' ? '✅ Telegram configurado' : '❌ Error al guardar');
-  }
 
-  // ── Helpers ──
-  function escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str || '';
-    return d.innerHTML;
-  }
+    // Build feature checkboxes in the plan modal
+    (function initFeatureCheckboxes() {
+        const container = document.getElementById('featureCheckboxes');
+        if (!container) return;
+        Object.entries(FEATURE_GROUPS).forEach(([group, keys], idx) => {
+            const groupDiv = document.createElement('div');
+            groupDiv.innerHTML = `
+                <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 ${idx > 0 ? 'pt-2 border-t border-gray-100' : ''}">${group}</div>
+                <div class="grid grid-cols-2 gap-1.5">
+                    ${keys.map(k => `<label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" id="pf_ft_${k}" class="rounded"> ${FEATURE_LABELS[k]}</label>`).join('')}
+                </div>
+            `;
+            container.appendChild(groupDiv);
+        });
+    })();
 
-  function timeAgo(dateStr) {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'ahora';
-    if (mins < 60) return mins + 'm';
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return hours + 'h';
-    return Math.floor(hours / 24) + 'd';
-  }
+    async function loadPlans() {
+        try {
+            const data = await api('/superadmin/api/plans');
+            if (!data) return;
+            allPlans = data.plans;
 
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
-  }
+            document.getElementById('plansGrid').innerHTML = allPlans.map((p, i) => {
+                const popular = i === 1;
+                const features = p.features || {};
+                return `
+                <div class="glass-card rounded-xl p-6 ${popular ? 'ring-2 ring-platform-500 relative' : ''}">
+                    ${popular ? '<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-platform-600 text-white text-xs font-bold px-3 py-1 rounded-full">Most Popular</div>' : ''}
+                    <div class="text-center mb-5">
+                        <h3 class="text-lg font-bold text-gray-900">${esc(p.display_name)}</h3>
+                        <div class="mt-2">
+                            <span class="text-3xl font-extrabold text-gray-900">$${p.price_usd}</span>
+                            <span class="text-sm text-gray-500">/mo</span>
+                        </div>
+                    </div>
+                    <div class="space-y-2.5 text-sm text-gray-600 mb-5">
+                        <div class="flex items-center gap-2"><i class="fas fa-comments text-platform-500 w-4"></i> ${p.max_conversations_mo.toLocaleString()} conversations/mo</div>
+                        <div class="flex items-center gap-2"><i class="fas fa-box text-platform-500 w-4"></i> ${p.max_products.toLocaleString()} products</div>
+                        ${Object.entries(FEATURE_GROUPS).map(([group, keys]) => `
+                            <div class="pt-1.5 mt-1.5 border-t border-gray-50">
+                                <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">${group}</div>
+                                ${keys.map(k => {
+                                    const label = FEATURE_LABELS[k] || k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                    return `<div class="flex items-center gap-2"><i class="fas fa-${features[k] ? 'check text-green-500' : 'times text-gray-300'} w-4"></i> ${label}</div>`;
+                                }).join('')}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="flex gap-2 pt-3 border-t border-gray-100">
+                        <button onclick="openPlanModal('${p.id}')" class="flex-1 text-xs text-platform-600 hover:bg-platform-50 py-2 rounded-lg transition font-medium">
+                            <i class="fas fa-pen mr-1"></i> Edit
+                        </button>
+                        <button onclick="if(confirm('Deactivate this plan?')) deletePlan('${p.id}')" class="flex-1 text-xs text-red-500 hover:bg-red-50 py-2 rounded-lg transition font-medium">
+                            <i class="fas fa-trash mr-1"></i> Remove
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            console.error('Plans load error:', e);
+        }
+    }
 
-  async function logout() {
-    await sbClient.auth.signOut();
-    window.location.replace('/login');
-  }
-</script>
+    // ═══════════════════════════════════════════════════════════
+    // PLAN MODAL (Create / Edit)
+    // ═══════════════════════════════════════════════════════════
+    function openPlanModal(planId = null) {
+        const modal = document.getElementById('planModal');
+        const form = document.getElementById('planForm');
+        form.reset();
+        document.getElementById('pf_id').value = '';
+        document.getElementById('planError').classList.add('hidden');
+
+        if (planId) {
+            const p = allPlans.find(x => x.id === planId);
+            if (!p) return;
+            document.getElementById('planModalTitle').textContent = `Edit: ${p.display_name}`;
+            document.getElementById('pf_id').value = p.id;
+            document.getElementById('pf_name').value = p.name;
+            document.getElementById('pf_name').disabled = true; // can't change internal name
+            document.getElementById('pf_display').value = p.display_name;
+            document.getElementById('pf_price').value = p.price_usd;
+            document.getElementById('pf_convs').value = p.max_conversations_mo;
+            document.getElementById('pf_products').value = p.max_products;
+            const ft = p.features || {};
+            FEATURE_KEYS.forEach(k => { document.getElementById('pf_ft_' + k).checked = !!ft[k]; });
+        } else {
+            document.getElementById('planModalTitle').textContent = 'New Plan';
+            document.getElementById('pf_name').disabled = false;
+        }
+        modal.classList.remove('hidden');
+    }
+
+    function closePlanModal() {
+        document.getElementById('planModal').classList.add('hidden');
+        document.getElementById('pf_name').disabled = false;
+    }
+
+    document.getElementById('planForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('planBtn');
+        const btnText = document.getElementById('planBtnText');
+        btn.disabled = true;
+        btnText.textContent = 'Saving...';
+        document.getElementById('planError').classList.add('hidden');
+
+        const features = {};
+        FEATURE_KEYS.forEach(k => { features[k] = document.getElementById('pf_ft_' + k).checked; });
+
+        const planId = document.getElementById('pf_id').value;
+        const payload = {
+            display_name: document.getElementById('pf_display').value.trim(),
+            max_conversations_mo: parseInt(document.getElementById('pf_convs').value),
+            max_products: parseInt(document.getElementById('pf_products').value),
+            price_usd: parseFloat(document.getElementById('pf_price').value),
+            features: features,
+        };
+
+        try {
+            if (planId) {
+                await api(`/superadmin/api/plans/${planId}`, 'PUT', payload);
+            } else {
+                payload.name = document.getElementById('pf_name').value.trim();
+                await api('/superadmin/api/plans', 'POST', payload);
+            }
+            closePlanModal();
+            loadPlans();
+        } catch (e) {
+            const errDiv = document.getElementById('planError');
+            errDiv.textContent = e.message;
+            errDiv.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btnText.textContent = 'Save Plan';
+        }
+    });
+
+    async function deletePlan(planId) {
+        try {
+            await api(`/superadmin/api/plans/${planId}`, 'DELETE');
+            loadPlans();
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TENANT EDIT MODAL
+    // ═══════════════════════════════════════════════════════════
+    function openEditTenantModal(tenantId) {
+        const t = allTenants.find(x => x.id === tenantId);
+        if (!t) return;
+        document.getElementById('editTenantError').classList.add('hidden');
+        document.getElementById('et_id').value = t.id;
+        document.getElementById('et_name').value = t.name || '';
+        document.getElementById('et_bot').value = t.bot_name || 'Sofía';
+        document.getElementById('et_status').value = t.status || 'active';
+        document.getElementById('et_store').value = t.store_url || '';
+        document.getElementById('et_ai_provider').value = t.ai_provider || 'gemini';
+        document.getElementById('et_ai_temp').value = t.ai_temperature ?? 0.3;
+        document.getElementById('et_ai_tokens').value = t.ai_max_tokens || 500;
+        document.getElementById('et_supa_url').value = t.supabase_url || '';
+        document.getElementById('et_supa_key').value = t.supabase_anon_key || '';
+        document.getElementById('editTenantTitle').textContent = `Edit: ${t.name}`;
+
+        // Populate plan select
+        const sel = document.getElementById('et_plan');
+        sel.innerHTML = '<option value="">No plan</option>' + allPlans.map(p => `<option value="${p.id}" ${t.plan_id === p.id ? 'selected' : ''}>${p.display_name} ($${p.price_usd}/mo)</option>`).join('');
+
+        closeDetailModal();
+        document.getElementById('editTenantModal').classList.remove('hidden');
+    }
+
+    function closeEditTenantModal() {
+        document.getElementById('editTenantModal').classList.add('hidden');
+    }
+
+    document.getElementById('editTenantForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('editTenantBtn');
+        btn.disabled = true;
+        document.getElementById('editTenantError').classList.add('hidden');
+
+        const tenantId = document.getElementById('et_id').value;
+        const payload = {
+            name: document.getElementById('et_name').value.trim(),
+            bot_name: document.getElementById('et_bot').value.trim(),
+            status: document.getElementById('et_status').value,
+            store_url: document.getElementById('et_store').value.trim(),
+            ai_provider: document.getElementById('et_ai_provider').value,
+            ai_temperature: parseFloat(document.getElementById('et_ai_temp').value),
+            ai_max_tokens: parseInt(document.getElementById('et_ai_tokens').value),
+            supabase_url: document.getElementById('et_supa_url').value.trim(),
+            supabase_anon_key: document.getElementById('et_supa_key').value.trim(),
+        };
+        const planId = document.getElementById('et_plan').value;
+        if (planId) payload.plan_id = planId;
+
+        try {
+            await api(`/superadmin/api/tenants/${tenantId}`, 'PUT', payload);
+            closeEditTenantModal();
+            loadTenants();
+            if (currentTab === 'overview') loadOverview();
+        } catch (e) {
+            const errDiv = document.getElementById('editTenantError');
+            errDiv.textContent = e.message;
+            errDiv.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // LOGS TAB
+    // ═══════════════════════════════════════════════════════════
+    async function loadLogs() {
+        try {
+            const data = await api('/superadmin/api/logs');
+            if (!data) return;
+            document.getElementById('logsCount').textContent = `${data.total} entries`;
+
+            if (!data.logs.length) {
+                document.getElementById('logsList').innerHTML = '<div class="text-center text-sm text-gray-400 py-8">No activity yet</div>';
+                return;
+            }
+
+            const actionIcons = {
+                'tenant_created': 'fa-plus-circle text-green-500',
+                'tenant_updated': 'fa-pen text-blue-500',
+                'tenant_deleted': 'fa-trash text-red-500',
+            };
+
+            document.getElementById('logsList').innerHTML = data.logs.map(l => {
+                const icon = actionIcons[l.action] || 'fa-circle text-gray-400';
+                const adminName = l.admin ? l.admin.name : 'System';
+                const tenantName = l.tenant ? l.tenant.name : '—';
+                const time = new Date(l.created_at).toLocaleString();
+                return `
+                <div class="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                    <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas ${icon} text-xs"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm text-gray-900">
+                            <span class="font-medium">${esc(adminName)}</span>
+                            <span class="text-gray-500">${formatAction(l.action)}</span>
+                            ${tenantName !== '—' ? `<span class="font-medium">${esc(tenantName)}</span>` : ''}
+                        </div>
+                        ${l.details && Object.keys(l.details).length ? `<div class="text-xs text-gray-400 mt-0.5 font-mono">${esc(JSON.stringify(l.details))}</div>` : ''}
+                    </div>
+                    <div class="text-xs text-gray-400 flex-shrink-0">${time}</div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            console.error('Logs load error:', e);
+        }
+    }
+
+    function formatAction(action) {
+        const map = {
+            'tenant_created': ' created tenant ',
+            'tenant_updated': ' updated tenant ',
+            'tenant_deleted': ' deleted tenant ',
+        };
+        return map[action] || ` ${action} `;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // FULFILLMENT TAB
+    // ═══════════════════════════════════════════════════════════
+    async function loadFulfillment() {
+        try {
+            // Populate tenants dropdown
+            if (!allTenants || !allTenants.length) {
+                const data = await api('/superadmin/api/tenants').catch(() => null);
+                if (data && data.tenants) allTenants = data.tenants;
+            }
+            const sel = document.getElementById('ffTenantSelect');
+            if (sel && allTenants && allTenants.length) {
+                const currentVal = sel.value;
+                sel.innerHTML = `
+                    <option value="https://www.trendyrd.com">TrendyRD (Test & Master Tenant)</option>
+                    ${allTenants.map(t => {
+                        const url = t.store_url || `https://${t.slug}.synkrd.com`;
+                        return `<option value="${esc(url)}">${esc(t.name)} (${esc(t.slug)})</option>`;
+                    }).join('')}
+                `;
+                if (currentVal) sel.value = currentVal;
+            }
+        } catch (e) {
+            console.error('loadFulfillment error:', e);
+        }
+    }
+
+    function switchFulfillmentTenant() {
+        const sel = document.getElementById('ffTenantSelect');
+        const baseUrl = sel.value.replace(/\/+$/, '') + '/api/fulfillment';
+        document.getElementById('ffBaseUrl').value = baseUrl;
+    }
+
+    function toggleKeyVisibility() {
+        const input = document.getElementById('ffApiKey');
+        const icon = document.getElementById('ffEyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    function copyElementText(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const val = el.value || el.innerText;
+        navigator.clipboard.writeText(val);
+        const originalStatus = document.getElementById('ffConsoleStatus').textContent;
+        document.getElementById('ffConsoleStatus').textContent = '✅ Copiado al portapapeles!';
+        setTimeout(() => {
+            document.getElementById('ffConsoleStatus').textContent = originalStatus;
+        }, 2000);
+    }
+
+    function clearFulfillmentConsole() {
+        document.getElementById('ffConsoleOutput').textContent = '// Consola limpia.';
+        document.getElementById('ffConsoleStatus').textContent = 'Listo';
+    }
+
+    async function testFulfillmentPing() {
+        const baseUrl = document.getElementById('ffBaseUrl').value;
+        const key = document.getElementById('ffApiKey').value;
+        const out = document.getElementById('ffConsoleOutput');
+        const st = document.getElementById('ffConsoleStatus');
+        st.textContent = 'Enviando Ping...';
+        out.textContent = `> GET ${baseUrl}/config (Ping)\n> Header: x-fulfillment-api-key: ${key.substring(0, 8)}...\n\nEsperando respuesta...`;
+
+        try {
+            const res = await fetch(`${baseUrl}/config?action=ping`, {
+                headers: { 'x-fulfillment-api-key': key }
+            });
+            const data = await res.json();
+            st.textContent = res.ok ? '🟢 Conexión exitosa (200 OK)' : `🔴 Error HTTP ${res.status}`;
+            out.textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+            st.textContent = '🔴 Error de red';
+            out.textContent = `Error de conexión: ${e.message}\nVerifica que la URL del endpoint sea accesible públicamente y tenga CORS habilitado.`;
+        }
+    }
+
+    async function testFetchOrders() {
+        const baseUrl = document.getElementById('ffBaseUrl').value;
+        const key = document.getElementById('ffApiKey').value;
+        const out = document.getElementById('ffConsoleOutput');
+        const st = document.getElementById('ffConsoleStatus');
+        st.textContent = 'Consultando órdenes confirmadas...';
+        out.textContent = `> GET ${baseUrl}/orders?status=confirmado_whatsapp\n\nEsperando órdenes...`;
+
+        try {
+            const res = await fetch(`${baseUrl}/orders?status=confirmado_whatsapp`, {
+                headers: { 'x-fulfillment-api-key': key }
+            });
+            const data = await res.json();
+            st.textContent = res.ok ? `🟢 ${data.total || 0} órdenes encontradas` : `🔴 Error HTTP ${res.status}`;
+            out.textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+            st.textContent = '🔴 Error de red';
+            out.textContent = `Error: ${e.message}`;
+        }
+    }
+
+    async function testFetchInventory() {
+        const baseUrl = document.getElementById('ffBaseUrl').value;
+        const key = document.getElementById('ffApiKey').value;
+        const out = document.getElementById('ffConsoleOutput');
+        const st = document.getElementById('ffConsoleStatus');
+        st.textContent = 'Consultando catálogo e inventario...';
+        out.textContent = `> GET ${baseUrl}/inventory\n\nEsperando catálogo...`;
+
+        try {
+            const res = await fetch(`${baseUrl}/inventory`, {
+                headers: { 'x-fulfillment-api-key': key }
+            });
+            const data = await res.json();
+            st.textContent = res.ok ? `🟢 ${data.total || 0} artículos con SKU` : `🔴 Error HTTP ${res.status}`;
+            out.textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+            st.textContent = '🔴 Error de red';
+            out.textContent = `Error: ${e.message}`;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // HELPERS
+    // ═══════════════════════════════════════════════════════════
+    function esc(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════
+    (async () => {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { window.location.href = '/superadmin/login'; return; }
+        token = session.access_token;
+
+        // Get user info
+        const { data: { user } } = await sb.auth.getUser();
+        if (user) {
+            document.getElementById('userName').textContent = user.user_metadata?.name || user.email?.split('@')[0] || 'Admin';
+            document.getElementById('userEmail').textContent = user.email || '';
+            document.getElementById('userAvatar').textContent = (user.email || 'SA').substring(0, 2).toUpperCase();
+        }
+
+        showTab('overview');
+    })();
+    </script>
 </body>
 </html>
